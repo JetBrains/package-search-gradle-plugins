@@ -10,8 +10,14 @@ import javax.inject.Inject
 
 open class TerraformExtension(project: Project, private val name: String) : Named {
 
+    /**
+     * Version of Terraform to use. Default is `1.0.3`.
+     */
     var version = "1.0.3"
 
+    /**
+     * Container for Terraform sources.
+     */
     val sourceSets: TerraformDirectorySetContainer = project.container { name -> TerraformDirectorySet(project, name) }
 
     /**
@@ -33,6 +39,10 @@ open class TerraformExtension(project: Project, private val name: String) : Name
         false
     }
 
+    /**
+     * Register the check to execute `terraform apply`. If returns `false` `terraform apply` cannot be executed.
+     * It is meant to avoid accidental executions while experimenting with the plugin.
+     */
     fun executeApplyOnlyIf(action: Spec<TerraformApply>) {
         applySpec = action
     }
