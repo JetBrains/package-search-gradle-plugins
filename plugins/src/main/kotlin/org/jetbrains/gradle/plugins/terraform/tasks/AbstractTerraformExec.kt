@@ -25,14 +25,15 @@ abstract class AbstractTerraformExec : DefaultTask() {
     var arguments by project.objects.listProperty<String>()
 
     @get:InputDirectory
-    var sourcesDirectory: File by project.objects.propertyWithDefault(project.projectDir)
+    var sourcesDirectory: File by project.objects.property()
 
     protected open fun ExecSpec.customizeExec() {
     }
 
     @TaskAction
     private fun execute(): ExecResult = project.exec {
-        val terraformExecutable = project.tasks.named<TerraformExtract>(TerraformPlugin.TERRAFORM_EXTRACT_TASK_NAME).get().outputExecutable
+        val terraformExecutable =
+            project.tasks.named<TerraformExtract>(TerraformPlugin.TERRAFORM_EXTRACT_TASK_NAME).get().outputExecutable
         executable = terraformExecutable.absolutePath
         workingDir = sourcesDirectory
         args = arguments

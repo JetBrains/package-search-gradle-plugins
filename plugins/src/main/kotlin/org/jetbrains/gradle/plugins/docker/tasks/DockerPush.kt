@@ -2,6 +2,7 @@ package org.jetbrains.gradle.plugins.docker.tasks
 
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.getValue
 import org.gradle.kotlin.dsl.property
 import org.gradle.kotlin.dsl.provideDelegate
@@ -13,6 +14,7 @@ open class DockerPush : AbstractDockerTask() {
     @get:Optional
     var imageTag by project.objects.property<String>()
 
+    @TaskAction
     fun execute() {
         client.pushImageCmd(imageTag).start().awaitCompletion()
     }

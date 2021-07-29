@@ -1,7 +1,8 @@
 package org.jetbrains.gradle.plugins.terraform.tasks
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.InputFile
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.os.OperatingSystem
@@ -13,20 +14,18 @@ import java.io.File
 
 open class TerraformExtract : DefaultTask() {
 
-    init {
-        group = TerraformPlugin.TASK_GROUP
-    }
-
-    @get:InputFile
-    var sourceZip by project.objects.property<File>()
+    @get:InputFiles
+    var configuration by project.objects.property<Configuration>()
 
     @get:OutputFile
     var outputExecutable by project.objects.property<File>()
 
     @TaskAction
     fun extract() {
-        project.zipTree(sourceZip).single { it.nameWithoutExtension == "terraform" }
-            .copyTo(outputExecutable, true)
+        project.zipTree(configuration.resolve().single()).first {
+            it.nameWithoutExtension == "terraform"
+                    && if (OperatingSystem.current().isWindows) it.extension == "exe" else true
+        }.copyTo(outputExecutable, true)
         if (OperatingSystem.current().isUnix) outputExecutable.setExecutable(true)
     }
 }

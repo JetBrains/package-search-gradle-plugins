@@ -4,6 +4,9 @@ rootProject.name = "jetbrains-gradle-plugins"
 
 pluginManagement {
     includeBuild("plugins")
+    plugins {
+        kotlin("jvm") version "1.5.21"
+    }
 }
 
-include(":tests")
+include(":tests", ":tests:docker", ":tests:terraform")

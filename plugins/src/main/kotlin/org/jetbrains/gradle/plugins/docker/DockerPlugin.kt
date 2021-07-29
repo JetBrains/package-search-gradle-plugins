@@ -53,10 +53,10 @@ open class DockerPlugin : Plugin<Project> {
                         }
                     }
                     .build()
-                    val httpClient = ApacheDockerHttpClient.Builder().apply {
-                        dockerHost(config.dockerHost)
-                        sslConfig(config.sslConfig)
-                    }.build()
+                val httpClient = ApacheDockerHttpClient.Builder().apply {
+                    dockerHost(config.dockerHost)
+                    sslConfig(config.sslConfig)
+                }.build()
                 DockerClientImpl.getInstance(config, httpClient)
             }
 
@@ -97,6 +97,7 @@ open class DockerPlugin : Plugin<Project> {
                         val repoName = repo.name.capitalize()
                             .replace("-", "").replace("_", "")
                         val dockerImagePush = register<DockerPush>("docker${tasksNamePrefix}${repoName}Push") {
+                            dependsOn(dockerImageBuild)
                             imageTag = repo.imageNamePrefix.suffixIfNot("/") + imageData.imageNameWithTag
                             client = clientBuilder(repo)
                         }

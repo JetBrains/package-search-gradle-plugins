@@ -4,6 +4,7 @@ import org.jetbrains.gradle.plugins.addAll
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.OutputFile
 import org.gradle.kotlin.dsl.getValue
 import org.gradle.kotlin.dsl.mapProperty
 import org.gradle.kotlin.dsl.property

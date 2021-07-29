@@ -1,10 +1,14 @@
 plugins {
     `kotlin-dsl`
-    kotlin("jvm") version "1.5.20"
+    kotlin("jvm") version "1.5.21"
 }
 
 repositories {
     mavenCentral()
+}
+
+sourceSets {
+
 }
 
 kotlin {
@@ -28,11 +32,11 @@ gradlePlugin {
             implementationClass = "org.jetbrains.gradle.plugins.docker.DockerPlugin"
         }
         create("terraformPlugin") {
-            id = "com.jetbrains.packagesearch.terraform"
+            id = "org.jetbrains.terraform"
             implementationClass = "org.jetbrains.gradle.plugins.terraform.TerraformPlugin"
         }
         create("liquibasePlugin") {
-            id = "com.jetbrains.packagesearch.liquibase"
+            id = "org.jetbrains.liquibase"
             implementationClass = "org.jetbrains.gradle.plugins.liquibase.LiquibasePlugin"
         }
     }
