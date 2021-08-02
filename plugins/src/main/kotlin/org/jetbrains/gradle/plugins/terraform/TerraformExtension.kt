@@ -1,12 +1,13 @@
 package org.jetbrains.gradle.plugins.terraform
 
+import org.gradle.api.Action
 import org.gradle.api.Named
-import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
 import org.gradle.api.specs.Spec
+import org.gradle.kotlin.dsl.NamedDomainObjectContainerScope
 import org.gradle.kotlin.dsl.container
+import org.gradle.kotlin.dsl.invoke
 import org.jetbrains.gradle.plugins.terraform.tasks.TerraformApply
-import javax.inject.Inject
 
 open class TerraformExtension(project: Project, private val name: String) : Named {
 
@@ -45,6 +46,10 @@ open class TerraformExtension(project: Project, private val name: String) : Name
      */
     fun executeApplyOnlyIf(action: Spec<TerraformApply>) {
         applySpec = action
+    }
+
+    fun sourceSets(action: Action<NamedDomainObjectContainerScope<TerraformDirectorySet>>) {
+        sourceSets.invoke(action)
     }
 
     override fun getName() =

@@ -1,5 +1,4 @@
 import org.jetbrains.gradle.plugins.docker.JvmImageName
-import org.jetbrains.gradle.plugins.setupJvmApp
 
 plugins {
     kotlin("jvm")

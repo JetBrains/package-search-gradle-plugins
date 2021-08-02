@@ -32,7 +32,7 @@ gradlePlugin {
             implementationClass = "org.jetbrains.gradle.plugins.docker.DockerPlugin"
         }
         create("terraformPlugin") {
-            id = "org.jetbrains.terraform"
+            id = "org.jetbrains.gradle.terraform"
             implementationClass = "org.jetbrains.gradle.plugins.terraform.TerraformPlugin"
         }
         create("liquibasePlugin") {

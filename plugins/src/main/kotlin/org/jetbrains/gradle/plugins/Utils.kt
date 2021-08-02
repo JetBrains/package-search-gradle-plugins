@@ -46,34 +46,6 @@ internal fun <K> Iterable<Action<K>>.executeAllOn(context: K) =
 internal inline fun <reified T : Any> ExtensionContainer.create(name: String, action: T.() -> Unit): T =
     create<T>(name).apply(action)
 
-fun DockerImage.setupJvmApp(imageName: String, imageTag: String) =
-    setupJvmApp(JvmImageName.Custom(imageName, imageTag))
-
-fun DockerImage.setupJvmApp(baseImage: JvmImageName = JvmImageName.OpenJRE8Slim) {
-    require(project.plugins.has<ApplicationPlugin>()) {
-        "Application plugin not applied. add 'id(\"application\")' in the 'plugins { }' block."
-    }
-    require(project.the<JavaApplication>().mainClass.isPresent) {
-        "Application main class not set. Please set the \"application.mainClass\" property."
-    }
-    val baseImageTaskNotation = baseImage.toString().split(":")
-        .flatMap { it.split("-") }.joinToString("") { it.capitalize() }
-    val generateDockerfileTaskName = "generate${baseImageTaskNotation}JvmAppDockerfile"
-    val extractImageTask = project.tasks.findByName(generateDockerfileTaskName)
-        ?: project.tasks.create<GenerateJvmAppDockerfile>(generateDockerfileTaskName) {
-            this.baseImage = baseImage
-            val baseFileName = baseImage.toString().replace(":", "-")
-            outputDockerfile = File(outputDockerfile.parentFile, "$baseFileName-app-dockerfile")
-            appName = project.name
-        }
-    files {
-        from(project.tasks.named<Sync>(DistributionPlugin.TASK_INSTALL_NAME))
-        from(extractImageTask) {
-            rename { "Dockerfile" }
-        }
-    }
-}
-
 internal fun <E> MutableCollection<E>.addAll(vararg elements: E) =
     elements.forEach { add(it) }
 
@@ -100,3 +72,6 @@ internal inline fun <reified T> ObjectFactory.propertyWithDefault(initialValue: 
 
 internal fun String.suffixIfNot(s: String) =
     if (endsWith(s)) this else this + s
+
+internal fun String.toCamelCase() =
+    replace(Regex("[-_](\\w)")) { it.value.last().toUpperCase().toString() }

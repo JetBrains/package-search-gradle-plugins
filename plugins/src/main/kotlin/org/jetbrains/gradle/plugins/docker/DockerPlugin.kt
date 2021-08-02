@@ -14,6 +14,7 @@ import org.jetbrains.gradle.plugins.docker.tasks.DockerBuild
 import org.jetbrains.gradle.plugins.docker.tasks.DockerPush
 import org.jetbrains.gradle.plugins.executeAllOn
 import org.jetbrains.gradle.plugins.suffixIfNot
+import org.jetbrains.gradle.plugins.toCamelCase
 import java.io.File
 
 open class DockerPlugin : Plugin<Project> {
@@ -68,7 +69,7 @@ open class DockerPlugin : Plugin<Project> {
             if (ext.images.isNotEmpty() && isDockerPresent) project.tasks {
                 ext.images.forEach { imageData: DockerImage ->
 
-                    val tasksNamePrefix = imageData.name.split("-").joinToString("") { it.capitalize() }
+                    val tasksNamePrefix = imageData.name.toCamelCase().capitalize()
                     val tasksCustomActions = DockerImage.Tasks().applyAll(imageData.tasksCustomizationContainer)
 
                     val dockerImagePrepare = register<Sync>("docker${tasksNamePrefix}Prepare") {
@@ -94,8 +95,7 @@ open class DockerPlugin : Plugin<Project> {
                     dockerBuild.dependsOn(dockerImageBuild)
 
                     ext.repositories.forEach { repo: DockerRepository ->
-                        val repoName = repo.name.capitalize()
-                            .replace("-", "").replace("_", "")
+                        val repoName = repo.name.toCamelCase().capitalize()
                         val dockerImagePush = register<DockerPush>("docker${tasksNamePrefix}${repoName}Push") {
                             dependsOn(dockerImageBuild)
                             imageTag = repo.imageNamePrefix.suffixIfNot("/") + imageData.imageNameWithTag
