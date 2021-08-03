@@ -75,7 +75,7 @@ internal fun String.suffixIfNot(s: String) =
     if (endsWith(s)) this else this + s
 
 internal fun String.toCamelCase() =
-    replace(Regex("[-_](\\w)")) { it.value.last().toUpperCase().toString() }
+    replace(Regex("[^a-zA-Z\\d](\\w)")) { it.value.last().toUpperCase().toString() }
 
 internal fun String.toKebabCase(includeSymbols: Boolean = false) = map { char ->
     when {

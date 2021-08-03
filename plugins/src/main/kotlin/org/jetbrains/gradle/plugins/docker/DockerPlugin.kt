@@ -32,8 +32,11 @@ open class DockerPlugin : Plugin<Project> {
         val repositoriesContainer = container { name ->
             DockerRepository(name.toCamelCase())
         }
+
         dockerExtension.extensions.add("images", imagesContainer)
         dockerExtension.extensions.add("repositories", repositoriesContainer)
+
+        imagesContainer.register(project.name.toCamelCase())
 
         val dockerPrepare by tasks.creating {
             group = TASK_GROUP

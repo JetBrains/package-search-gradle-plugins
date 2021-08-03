@@ -9,4 +9,4 @@ pluginManagement {
     }
 }
 
-include(":tests", ":tests:docker", ":tests:terraform")
+include(":tests", ":tests:docker-jvm-app", ":tests:terraform", ":tests:liquibase")

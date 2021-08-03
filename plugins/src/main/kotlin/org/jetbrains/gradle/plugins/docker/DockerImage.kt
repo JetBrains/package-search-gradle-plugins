@@ -1,3 +1,5 @@
+@file:Suppress("MemberVisibilityCanBePrivate")
+
 package org.jetbrains.gradle.plugins.docker
 
 import org.gradle.api.Named
@@ -7,13 +9,14 @@ import org.gradle.api.file.CopySourceSpec
 import org.gradle.api.plugins.ApplicationPlugin
 import org.gradle.api.plugins.JavaApplication
 import org.gradle.api.tasks.Sync
-import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.named
+import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.the
 import org.jetbrains.gradle.plugins.docker.tasks.DockerBuild
 import org.jetbrains.gradle.plugins.docker.tasks.DockerPush
 import org.jetbrains.gradle.plugins.docker.tasks.GenerateJvmAppDockerfile
 import org.jetbrains.gradle.plugins.has
+import org.jetbrains.gradle.plugins.toCamelCase
 import org.jetbrains.gradle.plugins.toKebabCase
 import java.io.File
 
@@ -110,12 +113,11 @@ data class DockerImage(
             project.logger.error("Application main class not set. Please set the \"application.mainClass\" property.")
             return
         }
-        val baseImageTaskNotation = baseImage.toString().split(":")
-            .flatMap { it.split("-") }.joinToString("") { it.capitalize() }
+        val baseImageTaskNotation = baseImage.toString().toCamelCase().capitalize()
         val generateDockerfileTaskName = "generate${baseImageTaskNotation}JvmAppDockerfile"
         val extractImageTask =
             project.tasks.findByName(generateDockerfileTaskName) as? GenerateJvmAppDockerfile
-                ?: project.tasks.create<GenerateJvmAppDockerfile>(generateDockerfileTaskName) {
+                ?: project.tasks.register<GenerateJvmAppDockerfile>(generateDockerfileTaskName) {
                     this.baseImage = baseImage
                     val baseFileName = baseImage.toString().replace(":", "-")
                     outputDockerfile = File(outputDockerfile.parentFile, "$baseFileName-app-dockerfile")

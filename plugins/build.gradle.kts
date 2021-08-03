@@ -36,7 +36,7 @@ gradlePlugin {
             implementationClass = "org.jetbrains.gradle.plugins.terraform.TerraformPlugin"
         }
         create("liquibasePlugin") {
-            id = "org.jetbrains.liquibase"
+            id = "org.jetbrains.gradle.liquibase"
             implementationClass = "org.jetbrains.gradle.plugins.liquibase.LiquibasePlugin"
         }
     }

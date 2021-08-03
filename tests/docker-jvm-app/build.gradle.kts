@@ -48,7 +48,7 @@ docker {
             }
     }
     images {
-        create("server-test") {
+        dockerJvmApp {
             setupJvmApp(JvmImageName.OpenJDK11Slim)
         }
     }
