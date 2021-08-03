@@ -16,5 +16,7 @@ abstract class AbstractGenerateDockerfile : DefaultTask() {
     }
 
     @get:OutputFile
-    var outputDockerfile by project.objects.propertyWithDefault(File(project.buildDir, "dockerfiles/Dockerfile"))
+    var outputDockerfile: File by project.objects
+        .propertyWithDefault(project.run { file("$buildDir/dockerfiles/Dockerfile") })
+
 }

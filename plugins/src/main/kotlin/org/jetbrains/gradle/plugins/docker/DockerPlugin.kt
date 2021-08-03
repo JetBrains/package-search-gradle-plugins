@@ -34,6 +34,7 @@ open class DockerPlugin : Plugin<Project> {
         }
         dockerExtension.extensions.add("images", imagesContainer)
         dockerExtension.extensions.add("repositories", repositoriesContainer)
+
         val dockerPrepare by tasks.creating {
             group = TASK_GROUP
         }
@@ -78,12 +79,11 @@ open class DockerPlugin : Plugin<Project> {
                 imagesContainer.forEach { imageData: DockerImage ->
 
                     val tasksNamePrefix = imageData.name.toCamelCase().capitalize()
-                    val tasksCustomActions = DockerImage.Tasks().applyAll(imageData.tasksCustomizationContainer)
 
                     val dockerImagePrepare = register<Sync>("docker${tasksNamePrefix}Prepare") {
                         imageData.copySpecActions.executeAllOn(this)
                         into(File(buildDir, "docker/${tasksNamePrefix.decapitalize()}"))
-                        tasksCustomActions.prepareTaskActions.executeAllOn(this)
+                        imageData.tasksCustomizationContainer.prepareTaskActions.executeAllOn(this)
                     }
                     dockerPush.dependsOn(dockerImagePrepare)
 
@@ -98,7 +98,7 @@ open class DockerPlugin : Plugin<Project> {
                         contextFolder = dockerImagePrepare.get().destinationDir
                         buildArgs = imageData.buildArgs
                         client = clientBuilder(null)
-                        tasksCustomActions.buildTaskActions.executeAllOn(this)
+                        imageData.tasksCustomizationContainer.buildTaskActions.executeAllOn(this)
                     }
                     dockerBuild.dependsOn(dockerImageBuild)
 
@@ -108,6 +108,7 @@ open class DockerPlugin : Plugin<Project> {
                             dependsOn(dockerImageBuild)
                             imageTag = repo.imageNamePrefix.suffixIfNot("/") + imageData.imageNameWithTag
                             client = clientBuilder(repo)
+                            imageData.tasksCustomizationContainer.pushTaskActions.executeAllOn(this)
                         }
                         dockerPush.dependsOn(dockerImagePush)
                     }

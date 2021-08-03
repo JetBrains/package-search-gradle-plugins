@@ -2,6 +2,9 @@ package org.jetbrains.gradle.plugins.docker
 
 import java.io.Serializable
 
+/**
+ * Hard coded list of JVM images available in the Docker Registry.
+ */
 sealed class JvmImageName : Serializable {
 
     abstract val imageName: String

@@ -17,7 +17,7 @@ open class DockerBuild : AbstractDockerTask() {
     var contextFolder by project.objects.property<File>()
 
     @get:Input
-    var buildArgs by project.objects.mapProperty<String, String?>()
+    var buildArgs by project.objects.mapProperty<String, String>()
 
     @TaskAction
     fun execute() {
