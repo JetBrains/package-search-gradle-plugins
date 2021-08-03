@@ -3,12 +3,12 @@ package org.jetbrains.gradle.plugins.docker
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.core.DefaultDockerClientConfig
 import com.github.dockerjava.core.DockerClientImpl
-import com.github.dockerjava.core.exec.PingCmdExec
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.tasks.Sync
 import org.gradle.kotlin.dsl.*
+import org.jetbrains.gradle.plugins.*
 import org.jetbrains.gradle.plugins.applyAll
 import org.jetbrains.gradle.plugins.docker.tasks.DockerBuild
 import org.jetbrains.gradle.plugins.docker.tasks.DockerPush
@@ -25,7 +25,15 @@ open class DockerPlugin : Plugin<Project> {
     }
 
     override fun apply(target: Project): Unit = with(target) {
-        val ext = extensions.create<DockerExtension>("docker", project, "docker")
+        val dockerExtension = extensions.create<DockerExtension>("docker", project, "docker")
+        val imagesContainer = container { name ->
+            DockerImage(name, project)
+        }
+        val repositoriesContainer = container { name ->
+            DockerRepository(name.toCamelCase())
+        }
+        dockerExtension.extensions.add("images", imagesContainer)
+        dockerExtension.extensions.add("repositories", repositoriesContainer)
         val dockerPrepare by tasks.creating {
             group = TASK_GROUP
         }
@@ -42,10 +50,10 @@ open class DockerPlugin : Plugin<Project> {
             val clientBuilder: (DockerRepository?) -> DockerClient = { repo ->
                 val config = DefaultDockerClientConfig.createDefaultConfigBuilder()
                     .apply {
-                        withDockerHost(ext.host)
-                        withDockerTlsVerify(ext.useTsl)
+                        withDockerHost(dockerExtension.host)
+                        withDockerTlsVerify(dockerExtension.useTsl)
                         if (repo != null) {
-                            ext.dockerCertPath?.let { withDockerCertPath(it.absolutePath) }
+                            dockerExtension.dockerCertPath?.let { withDockerCertPath(it.absolutePath) }
                             withRegistryUrl(repo.url.takeIf { it.isNotEmpty() }
                                 ?: error("Docker Repository ${repo.name} has an empty url"))
                             repo.username.takeIf { it.isNotEmpty() }?.let { withRegistryUsername(it) }
@@ -66,8 +74,8 @@ open class DockerPlugin : Plugin<Project> {
                 .map { true }
                 .getOrDefault(false)
 
-            if (ext.images.isNotEmpty() && isDockerPresent) project.tasks {
-                ext.images.forEach { imageData: DockerImage ->
+            if (imagesContainer.isNotEmpty() && isDockerPresent) project.tasks {
+                imagesContainer.forEach { imageData: DockerImage ->
 
                     val tasksNamePrefix = imageData.name.toCamelCase().capitalize()
                     val tasksCustomActions = DockerImage.Tasks().applyAll(imageData.tasksCustomizationContainer)
@@ -83,7 +91,7 @@ open class DockerPlugin : Plugin<Project> {
                         dependsOn(dockerImagePrepare)
                         tags = buildList {
                             add(imageData.imageNameWithTag)
-                            ext.repositories.forEach { repo: DockerRepository ->
+                            repositoriesContainer.forEach { repo: DockerRepository ->
                                 add(repo.imageNamePrefix.suffixIfNot("/") + imageData.imageNameWithTag)
                             }
                         }
@@ -94,7 +102,7 @@ open class DockerPlugin : Plugin<Project> {
                     }
                     dockerBuild.dependsOn(dockerImageBuild)
 
-                    ext.repositories.forEach { repo: DockerRepository ->
+                    repositoriesContainer.forEach { repo: DockerRepository ->
                         val repoName = repo.name.toCamelCase().capitalize()
                         val dockerImagePush = register<DockerPush>("docker${tasksNamePrefix}${repoName}Push") {
                             dependsOn(dockerImageBuild)

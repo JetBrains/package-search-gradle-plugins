@@ -8,10 +8,8 @@ import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.gradle.plugins.executeAllOn
-import org.jetbrains.gradle.plugins.terraform.tasks.TerraformApply
-import org.jetbrains.gradle.plugins.terraform.tasks.TerraformExtract
-import org.jetbrains.gradle.plugins.terraform.tasks.TerraformInit
-import org.jetbrains.gradle.plugins.terraform.tasks.TerraformPlan
+import org.jetbrains.gradle.plugins.terraform.tasks.*
+import org.jetbrains.gradle.plugins.toCamelCase
 import java.io.File
 
 open class TerraformPlugin : Plugin<Project> {
@@ -48,41 +46,67 @@ open class TerraformPlugin : Plugin<Project> {
             }
         }
 
-        val ext = extensions.create<TerraformExtension>(
+        val terraformExtension = extensions.create<TerraformExtension>(
             TERRAFORM_EXTENSION_NAME,
             project,
             TERRAFORM_EXTENSION_NAME
         )
 
-        ext.sourceSets.create("main")
+        val sourceSets =
+            container { name -> TerraformSourceSet(project, name.toCamelCase()) }
+
+        terraformExtension.extensions.add("sourceSets", sourceSets)
+
+        sourceSets.create("main")
 
         afterEvaluate {
             val copyLambdas by tasks.registering(Sync::class) {
                 from(lambda)
-                into(ext.lambdasDirectory)
+                into(terraformExtension.lambdasDirectory)
             }
             tasks.create<TerraformExtract>(TERRAFORM_EXTRACT_TASK_NAME) {
-                configuration = generateTerraformDetachedConfiguration(ext.version)
-                val executableName = evaluateTerraformName(ext.version)
+                configuration = generateTerraformDetachedConfiguration(terraformExtension.version)
+                val executableName = evaluateTerraformName(terraformExtension.version)
                 outputExecutable = File(buildDir, "terraform/$executableName")
             }
-            ext.sourceSets.forEach { sourceSet: TerraformDirectorySet ->
+            sourceSets.forEach { sourceSet: TerraformSourceSet ->
                 val taskName = sourceSet.name.capitalize()
-                val terraformInit: TaskProvider<TerraformInit> =
+
+                val tfInit: TaskProvider<TerraformInit> =
                     tasks.register<TerraformInit>("terraform${taskName}Init") {
                         sourcesDirectory = sourceSet.srcDir
                         sourceSet.tasksProvider.initActions.executeAllOn(this)
                     }
-                tasks.register<TerraformPlan>("terraform${taskName}Plan") {
-                    dependsOn(terraformInit, copyLambdas)
+
+                val terraformPlanOutputFile = file(
+                    "$buildDir/terraform/" +
+                            "${taskName.decapitalize()}/plan.bin"
+                )
+
+                val tfShow = tasks.create<TerraformShow>("terraform${taskName}Show") {
                     sourcesDirectory = sourceSet.srcDir
+                    inputPlanFile = terraformPlanOutputFile
+                    outputJsonPlanFile = terraformPlanOutputFile.resolveSibling("plan.json")
+                    sourceSet.tasksProvider.showActions.executeAllOn(this)
+                }
+
+                val tfPlan = tasks.register<TerraformPlan>("terraform${taskName}Plan") {
+                    dependsOn(tfInit, copyLambdas)
+                    sourcesDirectory = sourceSet.srcDir
+                    outputPlanFile = terraformPlanOutputFile
+                    variables = sourceSet.planVariables
+                    finalizedBy(tfShow)
                     sourceSet.tasksProvider.planActions.executeAllOn(this)
                 }
+
+                tfShow.dependsOn(tfPlan)
+
                 tasks.register<TerraformApply>("terraform${taskName}Apply") {
-                    dependsOn(terraformInit, copyLambdas)
+                    dependsOn(tfPlan)
                     sourcesDirectory = sourceSet.srcDir
+                    planFile = terraformPlanOutputFile
                     onlyIf {
-                        val canExecuteApply = ext.applySpec.isSatisfiedBy(this)
+                        val canExecuteApply = terraformExtension.applySpec.isSatisfiedBy(this)
                         if (!canExecuteApply) logger.warn(
                             "Cannot execute $name. Please check " +
                                     "your terraform extension in the script."
@@ -90,6 +114,45 @@ open class TerraformPlugin : Plugin<Project> {
                         canExecuteApply
                     }
                     sourceSet.tasksProvider.applyActions.executeAllOn(this)
+                }
+
+                val terraformDestroyPlanOutputFile = file(
+                    "$buildDir/terraform/" +
+                            "${taskName.decapitalize()}/destroyPlan.bin"
+                )
+
+                val tfDestroyShow = tasks.create<TerraformShow>("terraform${taskName}DestroyShow") {
+                    inputPlanFile = terraformDestroyPlanOutputFile
+                    sourcesDirectory = sourceSet.srcDir
+                    outputJsonPlanFile = terraformDestroyPlanOutputFile.resolveSibling("destroyPlan.json")
+                    sourceSet.tasksProvider.destroyShowActions.executeAllOn(this)
+                }
+
+                val tfDestroyPlan = tasks.register<TerraformPlan>("terraform${taskName}DestroyPlan") {
+                    dependsOn(tfInit, copyLambdas)
+                    sourcesDirectory = sourceSet.srcDir
+                    outputPlanFile = terraformDestroyPlanOutputFile
+                    isDestroy = true
+                    variables = sourceSet.planVariables
+                    finalizedBy(tfDestroyShow)
+                    sourceSet.tasksProvider.destroyPlanActions.executeAllOn(this)
+                }
+
+                tfDestroyShow.dependsOn(tfDestroyPlan)
+
+                tasks.register<TerraformApply>("terraform${taskName}Destroy") {
+                    dependsOn(tfDestroyPlan)
+                    sourcesDirectory = sourceSet.srcDir
+                    planFile = terraformDestroyPlanOutputFile
+                    onlyIf {
+                        val canExecuteApply = terraformExtension.destroySpec.isSatisfiedBy(this)
+                        if (!canExecuteApply) logger.warn(
+                            "Cannot execute $name. Please check " +
+                                    "your terraform extension in the script."
+                        )
+                        canExecuteApply
+                    }
+                    sourceSet.tasksProvider.destroyActions.executeAllOn(this)
                 }
             }
         }

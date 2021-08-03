@@ -39,14 +39,3 @@ internal fun Project.generateTerraformDetachedConfiguration(version: String): Co
     configuration.isTransitive = false
     return configuration
 }
-
-val SourceSet.terraform
-    get() = extensions.findByType<TerraformDirectorySet>() ?: error("Terraform plugin not applied.")
-
-fun SourceSet.terraform(action: Action<TerraformDirectorySet>) =
-    action.execute(terraform)
-
-typealias TerraformDirectorySetContainer = NamedDomainObjectContainer<TerraformDirectorySet>
-
-val NamedDomainObjectContainerScope<TerraformDirectorySet>.main
-    get () = named("main")

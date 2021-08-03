@@ -7,6 +7,7 @@ import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.tasks.JavaExec
 import org.gradle.kotlin.dsl.container
 import org.gradle.kotlin.dsl.create
@@ -33,21 +34,23 @@ open class LiquibasePlugin : Plugin<Project> {
     }
 
     override fun apply(target: Project): Unit = with(target) {
-        val liquibaseExtension = extensions.create<LiquibaseExtension>(
-            "liquibase",
-            container { Activity(it) }
-        )
+        val activityContainer = container { Activity(it) }
+        val liquibaseExtension = extensions.create<LiquibaseExtension>("liquibase")
+        liquibaseExtension.extensions.add("activities", activityContainer)
         val liquibaseConfiguration = configurations.create(LIQUIBASE_RUNTIME_CONFIGURATION_NAME)
-        afterEvaluate { configureTasks(liquibaseExtension, liquibaseConfiguration) }
+        afterEvaluate { configureTasks(activityContainer, liquibaseConfiguration) }
     }
 
-    private fun Project.configureTasks(liquibaseExtension: LiquibaseExtension, liquibaseConfiguration: Configuration) {
+    private fun Project.configureTasks(
+        activities: NamedDomainObjectContainer<Activity>,
+        liquibaseConfiguration: Configuration
+    ) {
         LiquibaseCommand.values().forEach { liquibaseCommand ->
             val upperTask = tasks.create("liquibase${liquibaseCommand.command.capitalize()}") {
                 group = "liquibase"
                 description = liquibaseCommand.description
             }
-            liquibaseExtension.activities.forEach { activity: Activity ->
+            activities.forEach { activity: Activity ->
                 val task = registerLiquibaseTask(activity, liquibaseConfiguration, liquibaseCommand)
                 upperTask.dependsOn(task)
             }
@@ -136,4 +139,4 @@ open class Activity(val name: String) {
     var jvmArgs = mutableListOf<String>()
 }
 
-open class LiquibaseExtension(val activities: NamedDomainObjectContainer<Activity>)
+abstract class LiquibaseExtension : ExtensionAware

@@ -14,13 +14,14 @@ import org.jetbrains.gradle.plugins.docker.tasks.DockerBuild
 import org.jetbrains.gradle.plugins.docker.tasks.DockerPush
 import org.jetbrains.gradle.plugins.docker.tasks.GenerateJvmAppDockerfile
 import org.jetbrains.gradle.plugins.has
+import org.jetbrains.gradle.plugins.toKebabCase
 import java.io.File
 
 open class DockerImage(
-    var imageName: String,
-    var imageVersion: String,
     private val name: String,
-    private val project: Project
+    private val project: Project,
+    var imageName: String = name.toKebabCase(),
+    var imageVersion: String = project.version as String,
 ) : Named {
 
     val imageNameWithTag

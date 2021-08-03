@@ -18,6 +18,7 @@ import org.jetbrains.gradle.plugins.docker.DockerRepository
 import org.jetbrains.gradle.plugins.docker.JvmImageName
 import org.jetbrains.gradle.plugins.docker.tasks.GenerateJvmAppDockerfile
 import java.io.File
+import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
 typealias DockerImagesContainer = NamedDomainObjectContainer<DockerImage>
@@ -75,3 +76,24 @@ internal fun String.suffixIfNot(s: String) =
 
 internal fun String.toCamelCase() =
     replace(Regex("[-_](\\w)")) { it.value.last().toUpperCase().toString() }
+
+internal fun String.toKebabCase(includeSymbols: Boolean = false) = map { char ->
+    when {
+        char.isUpperCase() -> "-${char.lowercase()}"
+        char.isLetter() -> char
+        else -> if (includeSymbols) char else '-'
+    }
+}.joinToString("")
+
+internal inline fun <reified T : Any> ObjectFactory.nullableProperty() =
+    object : ReadWriteProperty<Any?, T?> {
+
+        private val gradleProperty = this@nullableProperty.property<T>()
+
+        override fun getValue(thisRef: Any?, property: KProperty<*>) =
+            gradleProperty.orNull
+
+        override fun setValue(thisRef: Any?, property: KProperty<*>, value: T?) {
+            gradleProperty.set(value)
+        }
+    }
