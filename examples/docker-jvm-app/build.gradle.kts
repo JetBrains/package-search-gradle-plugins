@@ -26,6 +26,7 @@ tasks {
     test {
         useJUnitPlatform()
     }
+
 }
 
 docker {
