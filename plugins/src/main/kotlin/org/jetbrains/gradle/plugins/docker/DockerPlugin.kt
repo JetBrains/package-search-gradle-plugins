@@ -1,20 +1,14 @@
 package org.jetbrains.gradle.plugins.docker
 
-import com.github.dockerjava.api.DockerClient
-import com.github.dockerjava.core.DefaultDockerClientConfig
-import com.github.dockerjava.core.DockerClientImpl
-import com.github.dockerjava.httpclient5.ApacheDockerHttpClient
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Sync
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.gradle.plugins.*
-import org.jetbrains.gradle.plugins.applyAll
-import org.jetbrains.gradle.plugins.docker.tasks.DockerBuild
-import org.jetbrains.gradle.plugins.docker.tasks.DockerPush
-import org.jetbrains.gradle.plugins.executeAllOn
-import org.jetbrains.gradle.plugins.suffixIfNot
-import org.jetbrains.gradle.plugins.toCamelCase
+import org.jetbrains.gradle.plugins.docker.tasks.*
 import java.io.File
 
 open class DockerPlugin : Plugin<Project> {
@@ -51,72 +45,117 @@ open class DockerPlugin : Plugin<Project> {
             group = TASK_GROUP
         }
         afterEvaluate {
-            val clientBuilder: (DockerRepository?) -> DockerClient = { repo ->
-                val config = DefaultDockerClientConfig.createDefaultConfigBuilder()
-                    .apply {
-                        withDockerHost(dockerExtension.host)
-                        withDockerTlsVerify(dockerExtension.useTsl)
-                        if (repo != null) {
-                            dockerExtension.dockerCertPath?.let { withDockerCertPath(it.absolutePath) }
-                            withRegistryUrl(repo.url.takeIf { it.isNotEmpty() }
-                                ?: error("Docker Repository ${repo.name} has an empty url"))
-                            repo.username.takeIf { it.isNotEmpty() }?.let { withRegistryUsername(it) }
-                            withRegistryPassword(repo.password)
-                            repo.email.takeIf { it.isNotEmpty() }?.let { withRegistryEmail(it) }
+            if (imagesContainer.isNotEmpty() && isDockerPresent(dockerExtension.remoteConfigBuilder))
+                project.tasks {
+                    imagesContainer.forEach { imageData: DockerImage ->
+
+                        val tasksNamePrefix = imageData.name.toCamelCase().capitalize()
+
+                        val dockerImagePrepare = register<Sync>("docker${tasksNamePrefix}Prepare") {
+                            imageData.copySpecActions.executeAllOn(this)
+                            into(File(buildDir, "docker/${tasksNamePrefix.decapitalize()}"))
+                            imageData.tasksCustomizationContainer.prepareTaskActions.executeAllOn(this)
                         }
-                    }
-                    .build()
-                val httpClient = ApacheDockerHttpClient.Builder().apply {
-                    dockerHost(config.dockerHost)
-                    sslConfig(config.sslConfig)
-                }.build()
-                DockerClientImpl.getInstance(config, httpClient)
-            }
-
-            val isDockerPresent = runCatching { clientBuilder(null).pingCmd().exec() }
-                .onFailure { logger.warn("Docker not available: ${it.message}") }
-                .map { true }
-                .getOrDefault(false)
-
-            if (imagesContainer.isNotEmpty() && isDockerPresent) project.tasks {
-                imagesContainer.forEach { imageData: DockerImage ->
-
-                    val tasksNamePrefix = imageData.name.toCamelCase().capitalize()
-
-                    val dockerImagePrepare = register<Sync>("docker${tasksNamePrefix}Prepare") {
-                        imageData.copySpecActions.executeAllOn(this)
-                        into(File(buildDir, "docker/${tasksNamePrefix.decapitalize()}"))
-                        imageData.tasksCustomizationContainer.prepareTaskActions.executeAllOn(this)
-                    }
-                    dockerPush.dependsOn(dockerImagePrepare)
-
-                    val dockerImageBuild = register<DockerBuild>("docker${tasksNamePrefix}Build") {
-                        dependsOn(dockerImagePrepare)
-                        tags = buildList {
-                            add(imageData.imageNameWithTag)
-                            repositoriesContainer.forEach { repo: DockerRepository ->
-                                add(repo.imageNamePrefix.suffixIfNot("/") + imageData.imageNameWithTag)
+                        dockerPush.dependsOn(dockerImagePrepare)
+                        val dockerBuildTaskName = "docker${tasksNamePrefix}Build"
+                        val buildSpec: DockerBuildSpec.() -> Unit = {
+                            dependsOn(dockerImagePrepare)
+                            tags = buildList {
+                                add(imageData.imageNameWithTag)
+                                repositoriesContainer.forEach { repo: DockerRepository ->
+                                    add(repo.imageNamePrefix.suffixIfNot("/") + imageData.imageNameWithTag)
+                                }
                             }
+                            contextFolder = dockerImagePrepare.get().destinationDir
+                            buildArgs = imageData.buildArgs
+                            imageData.tasksCustomizationContainer.buildTaskActions.executeAllOn(this)
                         }
-                        contextFolder = dockerImagePrepare.get().destinationDir
-                        buildArgs = imageData.buildArgs
-                        client = clientBuilder(null)
-                        imageData.tasksCustomizationContainer.buildTaskActions.executeAllOn(this)
-                    }
-                    dockerBuild.dependsOn(dockerImageBuild)
+                        val dockerImageBuild: TaskProvider<out Task> =
+                            dockerExtension.remoteConfigBuilder?.let { remoteConfig ->
+                                registerDockerBuild(dockerBuildTaskName, remoteConfig, buildSpec)
+                            } ?: register<DockerExecBuild>(dockerBuildTaskName, buildSpec)
 
-                    repositoriesContainer.forEach { repo: DockerRepository ->
-                        val repoName = repo.name.toCamelCase().capitalize()
-                        val dockerImagePush = register<DockerPush>("docker${tasksNamePrefix}${repoName}Push") {
-                            dependsOn(dockerImageBuild)
-                            imageTag = repo.imageNamePrefix.suffixIfNot("/") + imageData.imageNameWithTag
-                            client = clientBuilder(repo)
-                            imageData.tasksCustomizationContainer.pushTaskActions.executeAllOn(this)
+                        dockerBuild.dependsOn(dockerImageBuild)
+
+                        repositoriesContainer.forEach { repo: DockerRepository ->
+                            val repoName = repo.name.toCamelCase().capitalize()
+                            val dockerPushSpec: DockerPushSpec.() -> Unit = {
+                                dependsOn(dockerBuild)
+                                imageTag = repo.imageNamePrefix.suffixIfNot("/") + imageData.imageNameWithTag
+                                imageData.tasksCustomizationContainer.pushTaskActions.executeAllOn(this)
+                            }
+                            val dockerPushTaskName = "docker${tasksNamePrefix}${repoName}Push"
+                            val dockerImagePush: Provider<out DockerPushSpec>? =
+                                dockerExtension.remoteConfigBuilder?.let { remoteConfig ->
+                                    registerDockerPush(
+                                        dockerPushTaskName,
+                                        dockerImageBuild,
+                                        repo,
+                                        imageData,
+                                        remoteConfig
+                                    )
+                                } ?: registerDockerExecPush(repoName, repo, dockerPushTaskName, dockerPushSpec)
+                            dockerPush.dependsOn(dockerImagePush)
                         }
-                        dockerPush.dependsOn(dockerImagePush)
                     }
                 }
+        }
+    }
+
+    private fun Project.isDockerPresent(remoteConfigBuilder: DockerExtension.Remote?) =
+        runCatching {
+            remoteConfigBuilder?.let { remoteConfig ->
+                buildDockerHttpClient(null, remoteConfig).pingCmd().exec()
+            } ?: exec {
+                    executable = "docker"
+                    args = listOf("version")
+                    standardOutput = NullOutputStream()
+                    errorOutput = NullOutputStream()
             }
+        }
+            .onFailure { logger.warn("Docker not available: ${it.message}") }
+            .map { true }
+            .getOrDefault(false)
+
+    private fun TaskContainerScope.registerDockerBuild(
+        dockerBuildTaskName: String,
+        remoteConfig: DockerExtension.Remote,
+        buildSpec: DockerBuildSpec.() -> Unit
+    ) = register<DockerBuild>(dockerBuildTaskName) {
+        client = buildDockerHttpClient(null, remoteConfig)
+        buildSpec()
+    }
+
+    private fun TaskContainerScope.registerDockerPush(
+        dockerPushTaskName: String,
+        dockerImageBuild: TaskProvider<out Task>,
+        repo: DockerRepository,
+        imageData: DockerImage,
+        remoteConfig: DockerExtension.Remote
+    ) = register<DockerPush>(dockerPushTaskName) {
+        dependsOn(dockerImageBuild)
+        imageTag = repo.imageNamePrefix.suffixIfNot("/") + imageData.imageNameWithTag
+        client = buildDockerHttpClient(repo, remoteConfig)
+    }
+
+    private fun TaskContainerScope.registerDockerExecPush(
+        repoName: String,
+        repo: DockerRepository,
+        dockerPushTaskName: String,
+        dockerPushSpec: DockerPushSpec.() -> Unit
+    ): TaskProvider<DockerExecPush> {
+        val dockerLoginTaskName = "docker${repoName}Login"
+        val dockerLogin =
+            register<DockerExecLogin>(dockerLoginTaskName) {
+                url = repo.url
+                username = repo.username.takeIf { it.isNotEmpty() }
+                    ?: repo.email.takeIf { it.isNotEmpty() }
+                            ?: error("Docker repository \"${repo.name}\" has empty username and email")
+                password = repo.password
+            }
+        return register<DockerExecPush>(dockerPushTaskName) {
+            dependsOn(dockerLogin)
+            dockerPushSpec()
         }
     }
 }

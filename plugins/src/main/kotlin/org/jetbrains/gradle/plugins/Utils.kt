@@ -1,3 +1,5 @@
+@file:Suppress("FunctionName")
+
 package org.jetbrains.gradle.plugins
 
 import org.gradle.api.Action
@@ -11,6 +13,7 @@ import org.gradle.api.plugins.JavaApplication
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Sync
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.gradle.plugins.docker.DockerImage
@@ -18,6 +21,7 @@ import org.jetbrains.gradle.plugins.docker.DockerRepository
 import org.jetbrains.gradle.plugins.docker.JvmImageName
 import org.jetbrains.gradle.plugins.docker.tasks.GenerateJvmAppDockerfile
 import java.io.File
+import java.io.OutputStream
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
@@ -85,15 +89,22 @@ internal fun String.toKebabCase(includeSymbols: Boolean = false) = map { char ->
     }
 }.joinToString("")
 
-internal inline fun <reified T : Any> ObjectFactory.nullableProperty() =
-    object : ReadWriteProperty<Any?, T?> {
+internal inline fun <reified T : Any> ObjectFactory.nullableProperty()=
+    property<T>().nullable()
 
-        private val gradleProperty = this@nullableProperty.property<T>()
+fun <T> Property<T>.nullable() = NullableProperty(this)
 
-        override fun getValue(thisRef: Any?, property: KProperty<*>) =
-            gradleProperty.orNull
+class NullableProperty<T>(private val gradleProperty: Property<T>) : ReadWriteProperty<Any?, T?> {
+    override fun getValue(thisRef: Any?, property: KProperty<*>): T? =
+        gradleProperty.orNull
 
-        override fun setValue(thisRef: Any?, property: KProperty<*>, value: T?) {
-            gradleProperty.set(value)
-        }
+    override fun setValue(thisRef: Any?, property: KProperty<*>, value: T?) {
+        gradleProperty.set(value)
     }
+}
+
+fun OutputStream(action: (Byte) -> Unit) = object : OutputStream() {
+    override fun write(b: Int) = action(b.toByte())
+}
+
+fun NullOutputStream() = OutputStream {  }

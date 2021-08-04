@@ -29,6 +29,7 @@ tasks {
 }
 
 docker {
+
     repositories {
         val username = System.getenv("CONTAINER_REGISTRY_USERNAME")
             ?: extra.properties["CONTAINER_REGISTRY_USERNAME"] as? String

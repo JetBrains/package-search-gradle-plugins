@@ -12,9 +12,7 @@ import org.gradle.api.tasks.Sync
 import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.the
-import org.jetbrains.gradle.plugins.docker.tasks.DockerBuild
-import org.jetbrains.gradle.plugins.docker.tasks.DockerPush
-import org.jetbrains.gradle.plugins.docker.tasks.GenerateJvmAppDockerfile
+import org.jetbrains.gradle.plugins.docker.tasks.*
 import org.jetbrains.gradle.plugins.has
 import org.jetbrains.gradle.plugins.toCamelCase
 import org.jetbrains.gradle.plugins.toKebabCase
@@ -67,19 +65,19 @@ data class DockerImage(
 
         internal val prepareTaskActions: MutableList<Sync.() -> Unit> = mutableListOf()
 
-        internal val buildTaskActions: MutableList<DockerBuild.() -> Unit> = mutableListOf()
+        internal val buildTaskActions: MutableList<DockerBuildSpec.() -> Unit> = mutableListOf()
 
-        internal val pushTaskActions: MutableList<DockerPush.() -> Unit> = mutableListOf()
+        internal val pushTaskActions: MutableList<DockerPushSpec.() -> Unit> = mutableListOf()
 
         fun dockerPrepareTaskProvider(action: Sync.() -> Unit) {
             prepareTaskActions.add(action)
         }
 
-        fun dockerBuildTaskProvider(action: DockerBuild.() -> Unit) {
+        fun dockerBuildTaskProvider(action: DockerBuildSpec.() -> Unit) {
             buildTaskActions.add(action)
         }
 
-        fun dockerPushTaskProvider(action: DockerPush.() -> Unit) {
+        fun dockerPushTaskProvider(action: DockerPushSpec.() -> Unit) {
             pushTaskActions.add(action)
         }
     }

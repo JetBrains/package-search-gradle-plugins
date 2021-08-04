@@ -7,17 +7,17 @@ import org.jetbrains.gradle.plugins.propertyWithDefault
 import org.jetbrains.gradle.plugins.setValue
 import java.io.File
 
-open class DockerBuild : AbstractDockerTask() {
+open class DockerBuild : AbstractDockerTask(), DockerBuildSpec {
 
     @get:Input
     @get:Optional
-    var tags by project.objects.listProperty<String>()
+    override var tags by project.objects.listProperty<String>()
 
     @get:InputDirectory
-    var contextFolder by project.objects.property<File>()
+    override var contextFolder by project.objects.property<File>()
 
     @get:Input
-    var buildArgs by project.objects.mapProperty<String, String>()
+    override var buildArgs by project.objects.mapProperty<String, String>()
 
     @TaskAction
     fun execute() {
