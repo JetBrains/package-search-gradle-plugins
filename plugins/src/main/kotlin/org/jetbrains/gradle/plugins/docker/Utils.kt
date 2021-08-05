@@ -4,16 +4,19 @@ import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.core.DefaultDockerClientConfig
 import com.github.dockerjava.core.DockerClientImpl
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient
+import org.gradle.api.Action
+import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.kotlin.dsl.NamedDomainObjectContainerScope
 import org.gradle.kotlin.dsl.TaskContainerScope
 import org.gradle.kotlin.dsl.register
 import org.jetbrains.gradle.plugins.NullOutputStream
 import org.jetbrains.gradle.plugins.docker.tasks.*
 import org.jetbrains.gradle.plugins.suffixIfNot
 
-internal fun buildDockerHttpClient(repo: DockerRepository?, dockerRemoteConfig: DockerExtension.Remote): DockerClient {
+internal fun buildDockerHttpClient(repo: DockerRegistry?, dockerRemoteConfig: DockerExtension.Remote): DockerClient {
     val config = DefaultDockerClientConfig.createDefaultConfigBuilder()
         .apply {
             withDockerHost(dockerRemoteConfig.host)
@@ -62,7 +65,7 @@ internal fun TaskContainerScope.registerDockerBuild(
 internal fun TaskContainerScope.registerDockerPush(
     dockerPushTaskName: String,
     dockerImageBuild: TaskProvider<out Task>,
-    repo: DockerRepository,
+    repo: DockerRegistry,
     imageData: DockerImage,
     remoteConfig: DockerExtension.Remote
 ) = register<DockerPush>(dockerPushTaskName) {
@@ -73,7 +76,7 @@ internal fun TaskContainerScope.registerDockerPush(
 
 internal fun TaskContainerScope.registerDockerExecPush(
     repoName: String,
-    repo: DockerRepository,
+    repo: DockerRegistry,
     dockerPushTaskName: String,
     dockerPushSpec: DockerPushSpec.() -> Unit
 ): TaskProvider<DockerExecPush> {
@@ -91,3 +94,12 @@ internal fun TaskContainerScope.registerDockerExecPush(
         dockerPushSpec()
     }
 }
+
+fun NamedDomainObjectContainer<DockerRegistry>.dockerHub(action: Action<DockerHubRepository>) =
+    maybeCreate("dockerHub").apply {
+        val hubCredentials = DockerHubRepository().apply { action.execute(this) }
+        username = hubCredentials.username
+        password = hubCredentials.password
+        url = "registry.hub.docker.com"
+        imageNamePrefix = "$url/$username"
+    }

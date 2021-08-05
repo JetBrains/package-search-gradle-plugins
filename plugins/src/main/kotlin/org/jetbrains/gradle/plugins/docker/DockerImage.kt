@@ -15,7 +15,7 @@ import org.gradle.kotlin.dsl.the
 import org.jetbrains.gradle.plugins.docker.tasks.*
 import org.jetbrains.gradle.plugins.has
 import org.jetbrains.gradle.plugins.toCamelCase
-import org.jetbrains.gradle.plugins.toKebabCase
+import org.jetbrains.gradle.plugins.fromCamelCaseToKebabCase
 import java.io.File
 
 /**
@@ -28,7 +28,7 @@ import java.io.File
 data class DockerImage(
     private val name: String,
     private val project: Project,
-    var imageName: String = name.toKebabCase(),
+    var imageName: String = name.fromCamelCaseToKebabCase(),
     var imageVersion: String = project.version as String,
 ) : Named {
 

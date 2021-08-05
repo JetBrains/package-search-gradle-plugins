@@ -1,4 +1,5 @@
 import org.jetbrains.gradle.plugins.docker.JvmImageName
+import org.jetbrains.gradle.plugins.docker.dockerHub
 
 plugins {
     kotlin("jvm")
@@ -30,8 +31,14 @@ tasks {
 }
 
 docker {
+//    useDockerRestApi {  }
+    registries {
 
-    repositories {
+        dockerHub {
+            username = "lamba92"
+            password = "test"
+        }
+
         val username = System.getenv("CONTAINER_REGISTRY_USERNAME")
             ?: extra.properties["CONTAINER_REGISTRY_USERNAME"] as? String
         val password = System.getenv("CONTAINER_REGISTRY_SECRET")
@@ -51,7 +58,9 @@ docker {
     }
     images {
         dockerJvmApp {
+            files {  }
             setupJvmApp(JvmImageName.OpenJDK11Slim)
+
         }
     }
 }

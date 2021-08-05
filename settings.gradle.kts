@@ -9,4 +9,16 @@ pluginManagement {
     }
 }
 
+plugins {
+    `gradle-enterprise`
+}
+
+gradleEnterprise {
+    buildScan {
+        publishAlwaysIf(System.getenv("CI") == "true")
+        termsOfServiceUrl = "https://gradle.com/terms-of-service"
+        termsOfServiceAgree = "yes"
+    }
+}
+
 include(":examples", ":examples:docker-jvm-app", ":examples:terraform", ":examples:liquibase")

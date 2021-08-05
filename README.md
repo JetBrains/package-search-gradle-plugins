@@ -12,9 +12,13 @@ plugins {
 }
 
 docker {
-    host = "tcp Docker address"
-    useTsl = true // default false
-    dockerCertPath = file("/path/to/cert") // or dockerCertPath("path/to/cert")
+    
+    // optional, it will use command line otherwise
+    useDockerRestApi {
+        host = "tcp://localhost:2375"
+        useTsl = true // default false
+        dockerCertPath = file("/path/to/cert") // or dockerCertPath("path/to/cert")
+    }
     
     repositories {
         create("my-custom-business-registry") {
@@ -28,7 +32,13 @@ docker {
     images {
         // assuming project.name == "my-project"
         myProject {
-            
+            files { 
+                from("Dockerfile")
+                from(file("/docker/whatever"))
+            }
+            buildArgs = mapOf("MY_ENV_VAR" to System.getenv("MY_ENV_VAR"))
+            imageName = "myProject"
+            imaveVersion = project.version.toString()
         }
     }
 }

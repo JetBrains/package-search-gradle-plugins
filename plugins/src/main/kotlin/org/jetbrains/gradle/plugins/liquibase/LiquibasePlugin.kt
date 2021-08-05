@@ -107,8 +107,9 @@ open class Activity(val name: String) {
     val arguments: MutableMap<String, String?> = mutableMapOf("logLevel" to "info")
     val parameters: MutableMap<String, String?> = mutableMapOf()
 
-    internal val taskActionsMap = mutableMapOf<LiquibaseCommand, MutableList<Action<JavaExec>>>()
-        .withDefault { mutableListOf() }
+    internal val taskActionsMap =
+        mutableMapOf<LiquibaseCommand, MutableList<Action<JavaExec>>>()
+            .withDefault { mutableListOf() }
 
     /**
      * Configures an [Action] that will be invoked against the task for

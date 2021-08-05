@@ -5,28 +5,21 @@ package org.jetbrains.gradle.plugins
 import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Plugin
-import org.gradle.api.distribution.plugins.DistributionPlugin
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.plugins.ApplicationPlugin
 import org.gradle.api.plugins.ExtensionContainer
-import org.gradle.api.plugins.JavaApplication
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
-import org.gradle.api.tasks.Sync
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.gradle.plugins.docker.DockerImage
-import org.jetbrains.gradle.plugins.docker.DockerRepository
-import org.jetbrains.gradle.plugins.docker.JvmImageName
-import org.jetbrains.gradle.plugins.docker.tasks.GenerateJvmAppDockerfile
-import java.io.File
+import org.jetbrains.gradle.plugins.docker.DockerRegistry
 import java.io.OutputStream
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
 typealias DockerImagesContainer = NamedDomainObjectContainer<DockerImage>
-typealias DockerRepositoriesContainer = NamedDomainObjectContainer<DockerRepository>
+typealias DockerRepositoriesContainer = NamedDomainObjectContainer<DockerRegistry>
 
 /**
  * Returns true if the container has a plugin with the given type [T], false otherwise.
@@ -81,7 +74,7 @@ internal fun String.suffixIfNot(s: String) =
 internal fun String.toCamelCase() =
     replace(Regex("[^a-zA-Z\\d](\\w)")) { it.value.last().toUpperCase().toString() }
 
-internal fun String.toKebabCase(includeSymbols: Boolean = false) = map { char ->
+internal fun String.fromCamelCaseToKebabCase(includeSymbols: Boolean = false) = map { char ->
     when {
         char.isUpperCase() -> "-${char.lowercase()}"
         char.isLetter() -> char

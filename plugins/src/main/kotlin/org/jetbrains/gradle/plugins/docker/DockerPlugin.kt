@@ -1,8 +1,6 @@
 package org.jetbrains.gradle.plugins.docker
 
-import org.gradle.api.Plugin
-import org.gradle.api.Project
-import org.gradle.api.Task
+import org.gradle.api.*
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.TaskProvider
@@ -19,16 +17,20 @@ open class DockerPlugin : Plugin<Project> {
     }
 
     override fun apply(target: Project): Unit = with(target) {
-        val dockerExtension = extensions.create<DockerExtension>("docker", project, "docker")
+        val dockerExtension = extensions.create<DockerExtension>(
+            "docker",
+            { path: String -> file(path) },
+            "docker"
+        )
         val imagesContainer = container { name ->
             DockerImage(name, project)
         }
         val repositoriesContainer = container { name ->
-            DockerRepository(name.toCamelCase())
+            DockerRegistry(name.toCamelCase())
         }
 
         dockerExtension.extensions.add("images", imagesContainer)
-        dockerExtension.extensions.add("repositories", repositoriesContainer)
+        dockerExtension.extensions.add("registries", repositoriesContainer)
 
         imagesContainer.register(project.name.toCamelCase())
 
@@ -62,7 +64,7 @@ open class DockerPlugin : Plugin<Project> {
                             dependsOn(dockerImagePrepare)
                             tags = buildList {
                                 add(imageData.imageNameWithTag)
-                                repositoriesContainer.forEach { repo: DockerRepository ->
+                                repositoriesContainer.forEach { repo: DockerRegistry ->
                                     add(repo.imageNamePrefix.suffixIfNot("/") + imageData.imageNameWithTag)
                                 }
                             }
@@ -77,14 +79,14 @@ open class DockerPlugin : Plugin<Project> {
 
                         dockerBuild.dependsOn(dockerImageBuild)
 
-                        repositoriesContainer.forEach { repo: DockerRepository ->
+                        repositoriesContainer.forEach { repo: DockerRegistry ->
                             val repoName = repo.name.toCamelCase().capitalize()
                             val dockerPushSpec: DockerPushSpec.() -> Unit = {
                                 dependsOn(dockerBuild)
                                 imageTag = repo.imageNamePrefix.suffixIfNot("/") + imageData.imageNameWithTag
                                 imageData.tasksCustomizationContainer.pushTaskActions.executeAllOn(this)
                             }
-                            val dockerPushTaskName = "docker${tasksNamePrefix}${repoName}Push"
+                            val dockerPushTaskName = "push${tasksNamePrefix}To${repoName}"
                             val dockerImagePush: Provider<out DockerPushSpec> =
                                 dockerExtension.remoteConfigBuilder?.let { remoteConfig ->
                                     registerDockerPush(

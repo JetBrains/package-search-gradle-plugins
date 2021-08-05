@@ -1,12 +1,12 @@
 import java.util.*
 
-val localProperties = file("local.properties")
+val localProperties = file("local.properties").takeIf { it.exists() }
 
 allprojects {
     group = "org.jetbrains.gradle"
-    version = "0.0.1"
+    version = System.getenv("GITHUB_REF")?.substringAfterLast("/") ?: "0.0.1"
 
-    localProperties.takeIf { it.exists() }?.let { extra.setAll(Properties(it)) }
+    localProperties?.let { extra.setAll(Properties(it)) }
 }
 
 fun Properties(from: File) = Properties().apply { load(from.inputStream().buffered()) }

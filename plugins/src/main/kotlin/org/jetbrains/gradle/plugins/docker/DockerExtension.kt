@@ -1,16 +1,18 @@
 package org.jetbrains.gradle.plugins.docker
 
 import org.gradle.api.Named
-import org.gradle.api.Project
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.internal.os.OperatingSystem
 import java.io.File
 
-abstract class DockerExtension(private val project: Project, private val name: String) : Named, ExtensionAware {
+abstract class DockerExtension(
+    private val file: (String) -> File,
+    private val name: String
+) : Named, ExtensionAware {
 
     internal var remoteConfigBuilder: Remote? = null
 
-    class Remote(private val project: Project) {
+    class Remote(private val file: (String) -> File) {
 
         /**
          * TCP or UNIX address to connect to the Docker client.
@@ -34,12 +36,13 @@ abstract class DockerExtension(private val project: Project, private val name: S
          * Specifies the path to the certificate to use for TSL.
          */
         fun dockerCertFile(path: String) {
-            dockerCertPath = project.file(path)
+            dockerCertPath = file(path)
         }
     }
 
     /**
-     * Uses HTTP Docker API instead of the local command line.
+     * Uses HTTP Docker API instead of the local command line. Default settings uses
+     * the Docker unix port or `localhost:2375` on Windows with TLS disabled.
      */
     fun useDockerRestApi(action: Remote.() -> Unit) {
         useDockerRestApi()
@@ -47,11 +50,12 @@ abstract class DockerExtension(private val project: Project, private val name: S
     }
 
     /**
-     * Uses HTTP Docker API instead of the local command line.
+     * Uses HTTP Docker API instead of the local command line. Default settings uses
+     * the Docker unix port or `localhost:2375` on Windows with TLS disabled.
      */
     fun useDockerRestApi() {
         if (remoteConfigBuilder == null) {
-            remoteConfigBuilder = Remote(project)
+            remoteConfigBuilder = Remote(file)
         }
     }
 
