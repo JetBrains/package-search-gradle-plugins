@@ -1,6 +1,7 @@
 ## Docker plugin
 
-Build Docker images easily in your build. Say that you need to pack in an image all the stuff in a directory, with the `Dockerfile` in root of the project:
+Build Docker images easily in your build. Say that you need to pack in an image all the stuff in a directory, with
+the `Dockerfile` in root of the project:
 
 ```kotlin
 plugins {
@@ -23,6 +24,7 @@ docker {
 ```
 
 It will create many tasks:
+
 - `dockerMyImageBuild`: Builds the image
 - `pushMyImageToDockerHub`: Will push the previously built image to the Docker Hub
 

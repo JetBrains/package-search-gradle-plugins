@@ -3,8 +3,6 @@ package org.jetbrains.gradle.plugins.terraform
 import org.gradle.api.Action
 import org.gradle.api.Named
 import org.gradle.api.Project
-import org.gradle.api.plugins.ExtensionAware
-import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.kotlin.dsl.mapProperty
 import org.gradle.kotlin.dsl.provideDelegate
 import org.jetbrains.gradle.plugins.getValue
@@ -13,6 +11,7 @@ import org.jetbrains.gradle.plugins.terraform.tasks.TerraformApply
 import org.jetbrains.gradle.plugins.terraform.tasks.TerraformInit
 import org.jetbrains.gradle.plugins.terraform.tasks.TerraformPlan
 import org.jetbrains.gradle.plugins.terraform.tasks.TerraformShow
+import java.io.File
 
 open class TerraformSourceSet(private val project: Project, private val name: String) : Named {
 
@@ -20,7 +19,7 @@ open class TerraformSourceSet(private val project: Project, private val name: St
      * The main directory in which Terraform will be executed.
      * Should contain the sources. Defaults to `"src/$name/terraform"`
      */
-    var srcDir = project.file("src/$name/terraform")
+    var srcDir: File = project.file("src/$name/terraform")
 
     internal val tasksProvider = TasksProvider()
 

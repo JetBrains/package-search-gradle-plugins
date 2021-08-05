@@ -4,7 +4,7 @@ Mange your migrations with Gradle:
 
 ```kotlin
 plugins {
-    id("com.jetbrains.packagesearch.liquibase")
+    id("org.jetbrains.gradle.liquibase") version "{latest_version}"
 }
 
 dependencies {

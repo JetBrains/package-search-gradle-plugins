@@ -8,7 +8,7 @@ import java.io.File
 
 abstract class DockerExtension(
     private val file: (String) -> File,
-    val regitries: DockerRegistryContainer,
+    val registries: DockerRegistryContainer,
     private val name: String
 ) : Named, ExtensionAware {
 
@@ -43,7 +43,7 @@ abstract class DockerExtension(
     }
 
     fun registries(action: Action<DockerRegistryContainer>) {
-        action.execute(regitries)
+        action.execute(registries)
     }
 
     /**

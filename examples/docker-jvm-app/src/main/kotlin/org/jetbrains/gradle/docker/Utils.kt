@@ -4,7 +4,6 @@ import io.ktor.application.*
 import io.ktor.server.engine.*
 import kotlinx.coroutines.CoroutineScope
 import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 
 fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> CoroutineScope.startServer(
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,

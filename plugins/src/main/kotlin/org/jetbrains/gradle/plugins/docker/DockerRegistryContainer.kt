@@ -10,7 +10,7 @@ class DockerRegistryContainer(
     /**
      * Adds the credentials for the Docker Hub.
      */
-    fun dockerHub(action: Action<DockerHubCredentials>) =
+    fun dockerHub(action: Action<DockerHubCredentials>): DockerRegistryCredentials =
         maybeCreate("dockerHub").apply {
             val hubCredentials = DockerHubCredentials().applyAction(action)
             username = hubCredentials.username

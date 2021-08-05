@@ -9,7 +9,6 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.kotlin.dsl.getValue
 import org.gradle.kotlin.dsl.property
 import org.gradle.kotlin.dsl.setValue
-import org.jetbrains.gradle.plugins.terraform.TerraformPlugin
 import java.io.File
 
 open class TerraformExtract : DefaultTask() {

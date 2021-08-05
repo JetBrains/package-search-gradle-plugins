@@ -1,9 +1,11 @@
 package org.jetbrains.gradle.plugins.docker.tasks
 
-import org.gradle.api.tasks.*
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.gradle.plugins.getValue
-import org.jetbrains.gradle.plugins.propertyWithDefault
 import org.jetbrains.gradle.plugins.setValue
 import java.io.File
 

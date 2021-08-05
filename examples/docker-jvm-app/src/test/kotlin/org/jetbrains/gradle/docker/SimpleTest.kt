@@ -9,7 +9,7 @@ import kotlin.test.assertEquals
 class SimpleTest {
 
     @Test
-    fun testGetEmptyRoute()  {
+    fun testGetEmptyRoute() {
         withTestApplication(Application::simpleModule) {
             handleRequest(HttpMethod.Get, "").apply {
                 assertEquals(HttpStatusCode.OK, response.status())

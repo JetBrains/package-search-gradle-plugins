@@ -1,11 +1,11 @@
 package org.jetbrains.gradle.plugins.terraform
 
 import org.gradle.api.Named
-import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.specs.Spec
 import org.jetbrains.gradle.plugins.terraform.tasks.TerraformApply
+import java.io.File
 
 abstract class TerraformExtension(project: Project, private val name: String) : Named, ExtensionAware {
 
@@ -33,10 +33,11 @@ abstract class TerraformExtension(project: Project, private val name: String) : 
      * }
      * ```
      */
-    var lambdasDirectory = project.file("${project.buildDir}/terraform/lambdas")
+    var lambdasDirectory: File = project.file("${project.buildDir}/terraform/lambdas")
 
     internal var applySpec = Spec<TerraformApply> {
-        it.logger.error("""
+        it.logger.error(
+            """
             Please specify a criteria with which execute terraform apply:
             terraform {
                 executeApplyOnlyIf { System.getenv("CAN_EXECUTE_TF_APPLY") == "true" }
@@ -45,12 +46,14 @@ abstract class TerraformExtension(project: Project, private val name: String) : 
             terraform {
                 executeApplyOnlyIf { true }
             }
-        """.trimIndent())
+        """.trimIndent()
+        )
         false
     }
 
     internal var destroySpec = Spec<TerraformApply> {
-        it.logger.error("""
+        it.logger.error(
+            """
             Please specify a criteria with which execute terraform destroy:
             terraform {
                 executeDestroyOnlyIf { System.getenv("CAN_EXECUTE_TF_DESTROY") == "true" }
@@ -59,7 +62,8 @@ abstract class TerraformExtension(project: Project, private val name: String) : 
             terraform {
                 executeDestroyOnlyIf { true }
             }
-        """.trimIndent())
+        """.trimIndent()
+        )
         false
     }
 

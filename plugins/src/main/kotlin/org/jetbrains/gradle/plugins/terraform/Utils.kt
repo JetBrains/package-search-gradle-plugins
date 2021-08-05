@@ -1,13 +1,8 @@
 package org.jetbrains.gradle.plugins.terraform
 
-import org.gradle.api.Action
-import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.tasks.SourceSet
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.kotlin.dsl.NamedDomainObjectContainerScope
-import org.gradle.kotlin.dsl.findByType
 
 internal fun evaluateTerraformName(version: String) =
     "terraform_$version" + when {

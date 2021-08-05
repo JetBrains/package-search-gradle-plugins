@@ -14,7 +14,10 @@ import org.jetbrains.gradle.plugins.NullOutputStream
 import org.jetbrains.gradle.plugins.docker.tasks.*
 import org.jetbrains.gradle.plugins.suffixIfNot
 
-internal fun buildDockerHttpClient(repo: DockerRegistryCredentials?, dockerRemoteConfig: DockerExtension.Remote): DockerClient {
+internal fun buildDockerHttpClient(
+    repo: DockerRegistryCredentials?,
+    dockerRemoteConfig: DockerExtension.Remote
+): DockerClient {
     val config = DefaultDockerClientConfig.createDefaultConfigBuilder()
         .apply {
             withDockerHost(dockerRemoteConfig.host)

@@ -11,7 +11,9 @@ import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
-import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.create
+import org.gradle.kotlin.dsl.invoke
+import org.gradle.kotlin.dsl.property
 import org.jetbrains.gradle.plugins.docker.DockerImage
 import org.jetbrains.gradle.plugins.docker.DockerRegistryCredentials
 import java.io.OutputStream
@@ -82,7 +84,7 @@ internal fun String.fromCamelCaseToKebabCase(includeSymbols: Boolean = false) = 
     }
 }.joinToString("")
 
-internal inline fun <reified T : Any> ObjectFactory.nullableProperty()=
+internal inline fun <reified T : Any> ObjectFactory.nullableProperty() =
     property<T>().nullable()
 
 fun <T> Property<T>.nullable() = NullableProperty(this)
@@ -100,4 +102,4 @@ fun OutputStream(action: (Byte) -> Unit) = object : OutputStream() {
     override fun write(b: Int) = action(b.toByte())
 }
 
-fun NullOutputStream() = OutputStream {  }
+fun NullOutputStream() = OutputStream { }

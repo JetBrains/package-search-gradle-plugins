@@ -1,5 +1,5 @@
 name: Publish on Gradle Plugin Portal
-on: [release]
+on: [ release ]
 jobs:
   run-gradle:
     runs-on: ubuntu-latest

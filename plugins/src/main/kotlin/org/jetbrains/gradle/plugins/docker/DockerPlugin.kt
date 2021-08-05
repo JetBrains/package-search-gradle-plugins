@@ -1,12 +1,18 @@
 package org.jetbrains.gradle.plugins.docker
 
-import org.gradle.api.*
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.*
-import org.jetbrains.gradle.plugins.*
-import org.jetbrains.gradle.plugins.docker.tasks.*
+import org.jetbrains.gradle.plugins.docker.tasks.DockerBuildSpec
+import org.jetbrains.gradle.plugins.docker.tasks.DockerExecBuild
+import org.jetbrains.gradle.plugins.docker.tasks.DockerPushSpec
+import org.jetbrains.gradle.plugins.executeAllOn
+import org.jetbrains.gradle.plugins.suffixIfNot
+import org.jetbrains.gradle.plugins.toCamelCase
 import java.io.File
 
 open class DockerPlugin : Plugin<Project> {

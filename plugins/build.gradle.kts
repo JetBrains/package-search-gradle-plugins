@@ -1,5 +1,3 @@
-import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication
-
 plugins {
     `kotlin-dsl`
     `maven-publish`

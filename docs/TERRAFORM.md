@@ -32,6 +32,7 @@ terraform {
 ```
 
 By default, sources are expected in `src/main/terraform`, also the plugin w create many tasks:
+
 - `terraformMainPlan`: generates the plan in `.bin` and `.json` format.
 - `terraformMainApply`: applies the plan from `terraformMainPlan`.
 - `terraformMainDestroyPlan`: generates the destroy plan in `.bin` and `.json` format.

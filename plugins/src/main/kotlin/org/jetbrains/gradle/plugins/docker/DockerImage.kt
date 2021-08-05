@@ -13,9 +13,9 @@ import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.the
 import org.jetbrains.gradle.plugins.docker.tasks.*
+import org.jetbrains.gradle.plugins.fromCamelCaseToKebabCase
 import org.jetbrains.gradle.plugins.has
 import org.jetbrains.gradle.plugins.toCamelCase
-import org.jetbrains.gradle.plugins.fromCamelCaseToKebabCase
 import java.io.File
 
 /**
@@ -48,7 +48,7 @@ data class DockerImage(
 
     /**
      * Creates a [CopySourceSpec] to create the folder in which
-     * execute `docekr build`
+     * execute `docker build`
      */
     fun files(action: CopySourceSpec.() -> Unit) {
         copySpecActions.add(action)

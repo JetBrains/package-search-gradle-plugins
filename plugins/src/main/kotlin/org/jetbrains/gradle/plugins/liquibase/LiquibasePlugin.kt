@@ -14,7 +14,6 @@ import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.register
 import org.jetbrains.gradle.plugins.executeAllOn
 import org.jetbrains.gradle.plugins.toCamelCase
-import java.util.Properties
 
 open class LiquibasePlugin : Plugin<Project> {
 
