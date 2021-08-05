@@ -6,7 +6,7 @@ import org.gradle.kotlin.dsl.getValue
 import org.gradle.kotlin.dsl.property
 import org.gradle.kotlin.dsl.provideDelegate
 import org.gradle.kotlin.dsl.setValue
-import org.jetbrains.gradle.plugins.docker.JvmImageName
+import org.jetbrains.gradle.plugins.docker.JvmBaseImages
 import org.jetbrains.gradle.plugins.propertyWithDefault
 
 open class GenerateJvmAppDockerfile : AbstractGenerateDockerfile() {
@@ -21,7 +21,7 @@ open class GenerateJvmAppDockerfile : AbstractGenerateDockerfile() {
     """.trimIndent()
 
     @get:Input
-    var baseImage: JvmImageName by project.objects.propertyWithDefault(JvmImageName.OpenJRE8Slim)
+    var baseImage: JvmBaseImages by project.objects.propertyWithDefault(JvmBaseImages.OpenJRE8Slim)
 
     @get:Input
     var appName by project.objects.property<String>()

@@ -13,6 +13,7 @@ import org.gradle.kotlin.dsl.container
 import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.register
 import org.jetbrains.gradle.plugins.executeAllOn
+import org.jetbrains.gradle.plugins.toCamelCase
 import java.util.Properties
 
 open class LiquibasePlugin : Plugin<Project> {
@@ -61,7 +62,9 @@ open class LiquibasePlugin : Plugin<Project> {
         activity: Activity,
         liquibaseConfiguration: Configuration,
         liquibaseCommand: LiquibaseCommand
-    ) = tasks.register<JavaExec>("liquibase${activity.name.capitalize()}${liquibaseCommand.command.capitalize()}") {
+    ) = tasks.register<JavaExec>(
+        "liquibase${activity.name.toCamelCase().capitalize()}${liquibaseCommand.command.capitalize()}"
+    ) {
 
         group = "liquibase"
         description = liquibaseCommand.description
@@ -99,8 +102,6 @@ open class LiquibasePlugin : Plugin<Project> {
         activity.taskActionsMap[liquibaseCommand]?.executeAllOn(this)
     }
 }
-
-private fun Properties.toMap() = entries.associate { it.key.toString() to it.value.toString() }
 
 open class Activity(val name: String) {
 

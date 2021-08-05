@@ -7,7 +7,7 @@ import org.gradle.kotlin.dsl.property
 import org.gradle.kotlin.dsl.provideDelegate
 import org.gradle.kotlin.dsl.setValue
 
-class DockerExecLogin : AbstractDockerExecTask() {
+open class DockerExecLogin : AbstractDockerExecTask() {
 
     init {
         logging.captureStandardOutput(LogLevel.INFO)

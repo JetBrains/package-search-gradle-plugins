@@ -1,5 +1,4 @@
-import org.jetbrains.gradle.plugins.docker.JvmImageName
-import org.jetbrains.gradle.plugins.docker.dockerHub
+import org.jetbrains.gradle.plugins.docker.JvmBaseImages
 
 plugins {
     kotlin("jvm")
@@ -50,17 +49,38 @@ docker {
                 this.password = password
                 url = System.getenv("CONTAINER_REGISTRY_URL")
                     ?: extra.properties["CONTAINER_REGISTRY_URL"] as? String
-                    ?: error("Container registry url not defined in env")
+                            ?: error("Container registry url not defined in env")
                 imageNamePrefix = System.getenv("CONTAINER_REGISTRY_IMAGE_PREFIX")
                     ?: extra.properties["CONTAINER_REGISTRY_IMAGE_PREFIX"] as? String
-                    ?: error("Container registry image prefix not defined in env")
+                            ?: error("Container registry image prefix not defined in env")
             }
     }
     images {
         dockerJvmApp {
-            files {  }
-            setupJvmApp(JvmImageName.OpenJDK11Slim)
-
+            setupJvmApp(JvmBaseImages.OpenJDK11Slim)
         }
     }
+}
+
+val containerName = "myContainer"
+
+task<Exec>("stopImage") {
+    group = "application"
+    executable = "docker"
+    args = listOf("stop", containerName)
+}
+
+task<Exec>("runImage") {
+    dependsOn(tasks.dockerBuild)
+    executable = "docker"
+    group = "application"
+    args = listOf(
+        "run",
+        "-d",
+        "-p",
+        "8080:8080",
+        "--name",
+        containerName,
+        docker.images.dockerJvmApp.get().imageNameWithTag
+    )
 }

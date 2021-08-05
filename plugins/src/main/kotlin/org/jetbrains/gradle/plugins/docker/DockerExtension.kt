@@ -1,5 +1,6 @@
 package org.jetbrains.gradle.plugins.docker
 
+import org.gradle.api.Action
 import org.gradle.api.Named
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.internal.os.OperatingSystem
@@ -7,6 +8,7 @@ import java.io.File
 
 abstract class DockerExtension(
     private val file: (String) -> File,
+    val regitries: DockerRegistryContainer,
     private val name: String
 ) : Named, ExtensionAware {
 
@@ -38,6 +40,10 @@ abstract class DockerExtension(
         fun dockerCertFile(path: String) {
             dockerCertPath = file(path)
         }
+    }
+
+    fun registries(action: Action<DockerRegistryContainer>) {
+        action.execute(regitries)
     }
 
     /**

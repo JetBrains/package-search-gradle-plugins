@@ -13,13 +13,13 @@ import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.gradle.plugins.docker.DockerImage
-import org.jetbrains.gradle.plugins.docker.DockerRegistry
+import org.jetbrains.gradle.plugins.docker.DockerRegistryCredentials
 import java.io.OutputStream
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
 typealias DockerImagesContainer = NamedDomainObjectContainer<DockerImage>
-typealias DockerRepositoriesContainer = NamedDomainObjectContainer<DockerRegistry>
+typealias DockerRepositoriesContainer = NamedDomainObjectContainer<DockerRegistryCredentials>
 
 /**
  * Returns true if the container has a plugin with the given type [T], false otherwise.

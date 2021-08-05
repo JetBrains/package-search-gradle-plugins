@@ -96,13 +96,13 @@ data class DockerImage(
      * as base image. It requires the [ApplicationPlugin] to be applied to the project correctly.
      */
     fun setupJvmApp(imageName: String, imageTag: String) =
-        setupJvmApp(JvmImageName.Custom(imageName, imageTag))
+        setupJvmApp(JvmBaseImages.Custom(imageName, imageTag))
 
     /**
      * Sets up this image to run a JVM application using the given [baseImage].
      * It requires the [ApplicationPlugin] to be applied to the project correctly.
      */
-    fun setupJvmApp(baseImage: JvmImageName = JvmImageName.OpenJRE8Slim) {
+    fun setupJvmApp(baseImage: JvmBaseImages = JvmBaseImages.OpenJRE8Slim) {
         if (!project.plugins.has<ApplicationPlugin>()) {
             project.logger.error("Application plugin not applied. Add 'id(\"application\")' in the 'plugins { }' block.")
             return

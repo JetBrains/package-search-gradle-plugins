@@ -17,20 +17,21 @@ open class DockerPlugin : Plugin<Project> {
     }
 
     override fun apply(target: Project): Unit = with(target) {
-        val dockerExtension = extensions.create<DockerExtension>(
-            "docker",
-            { path: String -> file(path) },
-            "docker"
-        )
         val imagesContainer = container { name ->
             DockerImage(name, project)
         }
         val repositoriesContainer = container { name ->
-            DockerRegistry(name.toCamelCase())
+            DockerRegistryCredentials(name.toCamelCase())
         }
 
+        val dockerExtension = extensions.create<DockerExtension>(
+            "docker",
+            { path: String -> file(path) },
+            DockerRegistryContainer(repositoriesContainer),
+            "docker"
+        )
+
         dockerExtension.extensions.add("images", imagesContainer)
-        dockerExtension.extensions.add("registries", repositoriesContainer)
 
         imagesContainer.register(project.name.toCamelCase())
 
@@ -64,7 +65,7 @@ open class DockerPlugin : Plugin<Project> {
                             dependsOn(dockerImagePrepare)
                             tags = buildList {
                                 add(imageData.imageNameWithTag)
-                                repositoriesContainer.forEach { repo: DockerRegistry ->
+                                repositoriesContainer.forEach { repo: DockerRegistryCredentials ->
                                     add(repo.imageNamePrefix.suffixIfNot("/") + imageData.imageNameWithTag)
                                 }
                             }
@@ -79,7 +80,7 @@ open class DockerPlugin : Plugin<Project> {
 
                         dockerBuild.dependsOn(dockerImageBuild)
 
-                        repositoriesContainer.forEach { repo: DockerRegistry ->
+                        repositoriesContainer.forEach { repo: DockerRegistryCredentials ->
                             val repoName = repo.name.toCamelCase().capitalize()
                             val dockerPushSpec: DockerPushSpec.() -> Unit = {
                                 dependsOn(dockerBuild)
