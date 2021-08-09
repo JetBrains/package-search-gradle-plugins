@@ -1,0 +1,43 @@
+name: Test plugins
+on: [ push ]
+jobs:
+  run-gradle:
+    runs-on: ubuntu-latest
+    name: Run Ci tests
+    strategy:
+      matrix:
+        os: [ macos-latest, windows-latest, ubuntu-latest ]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java-jdk
+        with:
+          distribution: 'adopt'
+          version: 16
+      - uses: actions/gradle-command-action@v1
+        name: Docker CLI test
+        env:
+          CONTAINER_REGISTRY_IMAGE_PREFIX: ${{secrets.CONTAINER_REGISTRY_IMAGE_PREFIX}}
+          CONTAINER_REGISTRY_SECRET: ${{secrets.CONTAINER_REGISTRY_SECRET}}
+          CONTAINER_REGISTRY_URL: ${{secrets.CONTAINER_REGISTRY_URL}}
+          CONTAINER_REGISTRY_USERNAME: ${{secrets.CONTAINER_REGISTRY_USERNAME}}
+        with:
+          arguments: dockerPublish
+      - uses: actions/gradle-command-action@v1
+        name: Docker REST API test
+        if: matrix.os != 'windows-latest'
+        env:
+          USE_DOCKER_REST: true
+          CONTAINER_REGISTRY_IMAGE_PREFIX: ${{secrets.CONTAINER_REGISTRY_IMAGE_PREFIX}}
+          CONTAINER_REGISTRY_SECRET: ${{secrets.CONTAINER_REGISTRY_SECRET}}
+          CONTAINER_REGISTRY_URL: ${{secrets.CONTAINER_REGISTRY_URL}}
+          CONTAINER_REGISTRY_USERNAME: ${{secrets.CONTAINER_REGISTRY_USERNAME}}
+        with:
+          arguments: dockerPublish
+      - uses: actions/gradle-command-action@v1
+        name: Liquibase test
+        with:
+          arguments: liquibaseUpdate
+      - uses: actions/gradle-command-action@v1
+        name: Terraform test
+        with:
+          arguments: terraformMainInit

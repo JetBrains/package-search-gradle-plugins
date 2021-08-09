@@ -4,7 +4,7 @@ plugins {
 
 dependencies {
     liquibaseRuntime("org.liquibase:liquibase-core:4.4.2")
-    liquibaseRuntime("org.postgresql:postgresql:42.2.23}")
+    liquibaseRuntime("org.xerial:sqlite-jdbc:3.36.0.1")
 }
 
 liquibase {
@@ -12,13 +12,11 @@ liquibase {
 
         all {
             arguments["changeLogFile"] = "dbchangelog.postgresql.xml"
-            arguments["driver"] = "org.postgresql.Driver"
+            arguments["driver"] = "org.sqlite.JDBC"
         }
 
         register("local") {
-            arguments["url"] = "jdbc:postgresql://localhost:5432/indexer"
-            arguments["username"] = "postgres"
-            arguments["password"] = "whatever"
+            arguments["url"] = "jdbc:sqlite:./db.sql"
         }
     }
 }

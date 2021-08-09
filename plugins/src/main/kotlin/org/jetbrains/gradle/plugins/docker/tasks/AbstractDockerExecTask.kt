@@ -12,7 +12,6 @@ abstract class AbstractDockerExecTask : DefaultTask() {
     init {
         group = DockerPlugin.TASK_GROUP
         logging.captureStandardOutput(LogLevel.INFO)
-        logging.captureStandardError(LogLevel.INFO)
     }
 
     protected abstract fun provideArguments(): List<String>

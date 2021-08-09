@@ -30,7 +30,10 @@ tasks {
 }
 
 docker {
-//    useDockerRestApi {  }
+
+    if (System.getenv("USE_DOCKER_REST") == "true")
+        useDockerRestApi()
+
     registries {
 
         dockerHub {

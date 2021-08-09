@@ -1,5 +1,6 @@
 package org.jetbrains.gradle.plugins.docker.tasks
 
+import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.Optional
@@ -10,6 +11,10 @@ import org.jetbrains.gradle.plugins.setValue
 import java.io.File
 
 open class DockerExecBuild : AbstractDockerExecTask(), DockerBuildSpec {
+
+    init {
+        logging.captureStandardError(LogLevel.INFO)
+    }
 
     @get:Input
     @get:Optional

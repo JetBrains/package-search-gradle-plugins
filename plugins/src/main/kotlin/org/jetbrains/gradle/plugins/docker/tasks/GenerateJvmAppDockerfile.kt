@@ -11,7 +11,8 @@ import org.jetbrains.gradle.plugins.propertyWithDefault
 
 open class GenerateJvmAppDockerfile : AbstractGenerateDockerfile() {
 
-    private val template = """
+    companion object {
+        private val template = """
         FROM %%%JVM_IMAGE_NAME%%%
 
         COPY bin /%%%APP_NAME%%%/bin
@@ -19,6 +20,7 @@ open class GenerateJvmAppDockerfile : AbstractGenerateDockerfile() {
 
         CMD ["/%%%APP_NAME%%%/bin/%%%APP_NAME%%%"]
     """.trimIndent()
+    }
 
     @get:Input
     var baseImage: JvmBaseImages by project.objects.propertyWithDefault(JvmBaseImages.OpenJRE8Slim)
