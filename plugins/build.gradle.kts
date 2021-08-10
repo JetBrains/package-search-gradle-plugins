@@ -30,11 +30,6 @@ pluginBundle {
     website = "https://github.com/JetBrains/jetbrains-gradle-plugins"
     vcsUrl = "https://github.com/JetBrains/jetbrains-gradle-plugins.git"
     tags = listOf("docker", "container", "terraform", "cloud", "aws", "azure", "google", "liquibase", "migrations")
-    mavenCoordinates {
-        group = project.group as String
-        artifactId = "jetbrains-gradle-plugins"
-        version = project.version as String
-    }
 }
 
 gradlePlugin {
