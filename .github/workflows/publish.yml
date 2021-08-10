@@ -1,5 +1,7 @@
 name: Publish on Gradle Plugin Portal
-on: [ release ]
+on:
+  release:
+    types: [published]
 jobs:
   run-gradle:
     runs-on: ubuntu-latest
@@ -15,4 +17,4 @@ jobs:
           GRADLE_PUBLISH_KEY: ${{secrets.GRADLE_PUBLISH_KEY}}
           GRADLE_PUBLISH_SECRET: ${{secrets.GRADLE_PUBLISH_SECRET}}
         with:
-          arguments: publishPlugins
+          arguments: :jetbrains-gradle-plugins:publishPlugins
