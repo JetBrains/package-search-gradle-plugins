@@ -15,18 +15,21 @@ import java.io.File
 
 open class TerraformSourceSet(private val project: Project, private val name: String) : Named {
 
+    private val baseBuildDir
+        get() = "${project.buildDir}/terraform/$name"
+
     /**
      * The main directory in which Terraform will be executed.
      * Should contain the sources. Defaults to `"src/$name/terraform"`
      */
     var srcDir: File = project.file("src/$name/terraform")
 
-    var dataDir: File = project.file("${project.buildDir}/terraform/data/$name")
+    var dataDir: File = project.file("$baseBuildDir/data")
 
-    var outputJsonPlan: File = project.file("${project.buildDir}/terraform/plans/$name/plan.json")
-    var outputDestroyJsonPlan: File = project.file("${project.buildDir}/terraform/plans/$name/destroyPlan.json")
-    var outputBinaryPlan: File = project.file("${project.buildDir}/terraform/plans/$name/plan.bin")
-    var outputDestroyBinaryPlan: File = project.file("${project.buildDir}/terraform/plans/$name/destroyPlan.bin")
+    var outputJsonPlan: File = project.file("$baseBuildDir/plan.json")
+    var outputDestroyJsonPlan: File = project.file("$baseBuildDir/destroyPlan.json")
+    var outputBinaryPlan: File = project.file("$baseBuildDir/plan.bin")
+    var outputDestroyBinaryPlan: File = project.file("$baseBuildDir/destroyPlan.bin")
 
     internal val tasksProvider = TasksProvider()
 
