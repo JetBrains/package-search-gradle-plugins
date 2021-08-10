@@ -36,11 +36,6 @@ docker {
 
     registries {
 
-        dockerHub {
-            username = "lamba92"
-            password = "test"
-        }
-
         val username = System.getenv("CONTAINER_REGISTRY_USERNAME")
             ?: extra.properties["CONTAINER_REGISTRY_USERNAME"] as? String
         val password = System.getenv("CONTAINER_REGISTRY_SECRET")
