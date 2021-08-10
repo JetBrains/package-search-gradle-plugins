@@ -1,14 +1,11 @@
 package org.jetbrains.gradle.plugins.terraform.tasks
 
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputFile
-import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.*
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.gradle.plugins.*
 import java.io.File
 
-abstract class TerraformPlan : AbstractTerraformExec() {
+open class TerraformPlan : AbstractTerraformExec() {
 
     @get:Input
     var isDestroy by project.objects.propertyWithDefault(false)
@@ -37,6 +34,9 @@ abstract class TerraformPlan : AbstractTerraformExec() {
 
     @get:OutputFile
     var outputPlanFile by project.objects.property<File>()
+
+    @get:InputDirectory
+    override var dataDir by project.objects.property<File>()
 
     override fun getTerraformArguments(): List<String> = buildList {
         add("plan")

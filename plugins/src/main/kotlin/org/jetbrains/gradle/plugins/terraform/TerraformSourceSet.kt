@@ -21,6 +21,8 @@ open class TerraformSourceSet(private val project: Project, private val name: St
      */
     var srcDir: File = project.file("src/$name/terraform")
 
+    var dataDir: File = project.file("${project.buildDir}/terraform/data/$name")
+
     internal val tasksProvider = TasksProvider()
 
     /**

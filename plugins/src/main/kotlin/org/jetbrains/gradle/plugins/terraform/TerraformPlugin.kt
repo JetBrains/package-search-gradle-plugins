@@ -75,6 +75,7 @@ open class TerraformPlugin : Plugin<Project> {
                 val tfInit: TaskProvider<TerraformInit> =
                     tasks.register<TerraformInit>("terraform${taskName}Init") {
                         sourcesDirectory = sourceSet.srcDir
+                        dataDir = sourceSet.dataDir
                         sourceSet.tasksProvider.initActions.executeAllOn(this)
                     }
 
@@ -85,6 +86,7 @@ open class TerraformPlugin : Plugin<Project> {
 
                 val tfShow = tasks.create<TerraformShow>("terraform${taskName}Show") {
                     sourcesDirectory = sourceSet.srcDir
+                    dataDir = sourceSet.dataDir
                     inputPlanFile = terraformPlanOutputFile
                     outputJsonPlanFile = terraformPlanOutputFile.resolveSibling("plan.json")
                     sourceSet.tasksProvider.showActions.executeAllOn(this)
@@ -93,6 +95,7 @@ open class TerraformPlugin : Plugin<Project> {
                 val tfPlan = tasks.register<TerraformPlan>("terraform${taskName}Plan") {
                     dependsOn(tfInit, copyLambdas)
                     sourcesDirectory = sourceSet.srcDir
+                    dataDir = sourceSet.dataDir
                     outputPlanFile = terraformPlanOutputFile
                     variables = sourceSet.planVariables
                     finalizedBy(tfShow)
@@ -104,6 +107,7 @@ open class TerraformPlugin : Plugin<Project> {
                 tasks.register<TerraformApply>("terraform${taskName}Apply") {
                     dependsOn(tfPlan)
                     sourcesDirectory = sourceSet.srcDir
+                    dataDir = sourceSet.dataDir
                     planFile = terraformPlanOutputFile
                     onlyIf {
                         val canExecuteApply = terraformExtension.applySpec.isSatisfiedBy(this)
@@ -123,6 +127,7 @@ open class TerraformPlugin : Plugin<Project> {
 
                 val tfDestroyShow = tasks.create<TerraformShow>("terraform${taskName}DestroyShow") {
                     inputPlanFile = terraformDestroyPlanOutputFile
+                    dataDir = sourceSet.dataDir
                     sourcesDirectory = sourceSet.srcDir
                     outputJsonPlanFile = terraformDestroyPlanOutputFile.resolveSibling("destroyPlan.json")
                     sourceSet.tasksProvider.destroyShowActions.executeAllOn(this)
@@ -131,6 +136,7 @@ open class TerraformPlugin : Plugin<Project> {
                 val tfDestroyPlan = tasks.register<TerraformPlan>("terraform${taskName}DestroyPlan") {
                     dependsOn(tfInit, copyLambdas)
                     sourcesDirectory = sourceSet.srcDir
+                    dataDir = sourceSet.dataDir
                     outputPlanFile = terraformDestroyPlanOutputFile
                     isDestroy = true
                     variables = sourceSet.planVariables
@@ -143,6 +149,7 @@ open class TerraformPlugin : Plugin<Project> {
                 tasks.register<TerraformApply>("terraform${taskName}Destroy") {
                     dependsOn(tfDestroyPlan)
                     sourcesDirectory = sourceSet.srcDir
+                    dataDir = sourceSet.dataDir
                     planFile = terraformDestroyPlanOutputFile
                     onlyIf {
                         val canExecuteApply = terraformExtension.destroySpec.isSatisfiedBy(this)

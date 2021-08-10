@@ -4,3 +4,5 @@ out/
 *.iml
 .gradle/
 local.properties
+examples/terraform/src/main/terraform/.terraform/
+examples/terraform/src/main/terraform/.terraform.lock.hcl

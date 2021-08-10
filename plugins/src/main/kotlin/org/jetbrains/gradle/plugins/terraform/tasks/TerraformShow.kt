@@ -1,5 +1,6 @@
 package org.jetbrains.gradle.plugins.terraform.tasks
 
+import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputFile
 import org.gradle.kotlin.dsl.getValue
@@ -9,13 +10,16 @@ import org.gradle.kotlin.dsl.setValue
 import org.gradle.process.ExecSpec
 import java.io.File
 
-abstract class TerraformShow : AbstractTerraformExec() {
+open class TerraformShow : AbstractTerraformExec() {
 
     @get:InputFile
     var inputPlanFile by project.objects.property<File>()
 
     @get:OutputFile
     var outputJsonPlanFile by project.objects.property<File>()
+
+    @get:InputDirectory
+    override var dataDir by project.objects.property<File>()
 
     override fun ExecSpec.customizeExec() {
         standardOutput = outputJsonPlanFile.outputStream()

@@ -4,6 +4,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.*
 import org.gradle.process.ExecResult
@@ -23,6 +24,8 @@ abstract class AbstractTerraformExec : DefaultTask() {
     @get:InputDirectory
     var sourcesDirectory by project.objects.property<File>()
 
+    abstract var dataDir: File
+
     @Internal
     protected abstract fun getTerraformArguments(): List<String>
 
@@ -36,6 +39,7 @@ abstract class AbstractTerraformExec : DefaultTask() {
         executable = terraformExecutable.absolutePath
         workingDir = sourcesDirectory
         args = getTerraformArguments()
+        environment = mapOf("TF_DATA_DIR" to dataDir.absolutePath)
         customizeExec()
     }
 }
