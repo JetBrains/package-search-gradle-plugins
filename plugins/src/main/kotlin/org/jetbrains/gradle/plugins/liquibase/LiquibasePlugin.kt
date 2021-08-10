@@ -37,7 +37,10 @@ open class LiquibasePlugin : Plugin<Project> {
         val activityContainer = container { Activity(it) }
         val liquibaseExtension = extensions.create<LiquibaseExtension>("liquibase")
         liquibaseExtension.extensions.add("activities", activityContainer)
-        val liquibaseConfiguration = configurations.create(LIQUIBASE_RUNTIME_CONFIGURATION_NAME)
+        val liquibaseConfiguration = configurations.create(LIQUIBASE_RUNTIME_CONFIGURATION_NAME) {
+            isCanBeResolved = true
+            isCanBeConsumed = false
+        }
         afterEvaluate { configureTasks(activityContainer, liquibaseConfiguration) }
     }
 
