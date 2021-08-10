@@ -23,6 +23,11 @@ open class TerraformSourceSet(private val project: Project, private val name: St
 
     var dataDir: File = project.file("${project.buildDir}/terraform/data/$name")
 
+    var outputJsonPlan: File = project.file("${project.buildDir}/terraform/plans/$name/plan.json")
+    var outputDestroyJsonPlan: File = project.file("${project.buildDir}/terraform/plans/$name/destroyPlan.json")
+    var outputBinaryPlan: File = project.file("${project.buildDir}/terraform/plans/$name/plan.bin")
+    var outputDestroyBinaryPlan: File = project.file("${project.buildDir}/terraform/plans/$name/destroyPlan.bin")
+
     internal val tasksProvider = TasksProvider()
 
     /**

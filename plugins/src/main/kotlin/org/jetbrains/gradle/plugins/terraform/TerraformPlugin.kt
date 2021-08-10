@@ -79,16 +79,11 @@ open class TerraformPlugin : Plugin<Project> {
                         sourceSet.tasksProvider.initActions.executeAllOn(this)
                     }
 
-                val terraformPlanOutputFile = file(
-                    "$buildDir/terraform/" +
-                            "${taskName.decapitalize()}/plan.bin"
-                )
-
                 val tfShow = tasks.create<TerraformShow>("terraform${taskName}Show") {
                     sourcesDirectory = sourceSet.srcDir
                     dataDir = sourceSet.dataDir
-                    inputPlanFile = terraformPlanOutputFile
-                    outputJsonPlanFile = terraformPlanOutputFile.resolveSibling("plan.json")
+                    inputPlanFile = sourceSet.outputBinaryPlan
+                    outputJsonPlanFile = sourceSet.outputJsonPlan
                     sourceSet.tasksProvider.showActions.executeAllOn(this)
                 }
 
@@ -96,7 +91,7 @@ open class TerraformPlugin : Plugin<Project> {
                     dependsOn(tfInit, copyLambdas)
                     sourcesDirectory = sourceSet.srcDir
                     dataDir = sourceSet.dataDir
-                    outputPlanFile = terraformPlanOutputFile
+                    outputPlanFile = sourceSet.outputBinaryPlan
                     variables = sourceSet.planVariables
                     finalizedBy(tfShow)
                     sourceSet.tasksProvider.planActions.executeAllOn(this)
@@ -108,7 +103,7 @@ open class TerraformPlugin : Plugin<Project> {
                     dependsOn(tfPlan)
                     sourcesDirectory = sourceSet.srcDir
                     dataDir = sourceSet.dataDir
-                    planFile = terraformPlanOutputFile
+                    planFile = sourceSet.outputBinaryPlan
                     onlyIf {
                         val canExecuteApply = terraformExtension.applySpec.isSatisfiedBy(this)
                         if (!canExecuteApply) logger.warn(
@@ -120,16 +115,11 @@ open class TerraformPlugin : Plugin<Project> {
                     sourceSet.tasksProvider.applyActions.executeAllOn(this)
                 }
 
-                val terraformDestroyPlanOutputFile = file(
-                    "$buildDir/terraform/" +
-                            "${taskName.decapitalize()}/destroyPlan.bin"
-                )
-
                 val tfDestroyShow = tasks.create<TerraformShow>("terraform${taskName}DestroyShow") {
-                    inputPlanFile = terraformDestroyPlanOutputFile
+                    inputPlanFile = sourceSet.outputDestroyBinaryPlan
                     dataDir = sourceSet.dataDir
                     sourcesDirectory = sourceSet.srcDir
-                    outputJsonPlanFile = terraformDestroyPlanOutputFile.resolveSibling("destroyPlan.json")
+                    outputJsonPlanFile = sourceSet.outputDestroyJsonPlan
                     sourceSet.tasksProvider.destroyShowActions.executeAllOn(this)
                 }
 
@@ -137,7 +127,7 @@ open class TerraformPlugin : Plugin<Project> {
                     dependsOn(tfInit, copyLambdas)
                     sourcesDirectory = sourceSet.srcDir
                     dataDir = sourceSet.dataDir
-                    outputPlanFile = terraformDestroyPlanOutputFile
+                    outputPlanFile = sourceSet.outputDestroyBinaryPlan
                     isDestroy = true
                     variables = sourceSet.planVariables
                     finalizedBy(tfDestroyShow)
@@ -150,7 +140,7 @@ open class TerraformPlugin : Plugin<Project> {
                     dependsOn(tfDestroyPlan)
                     sourcesDirectory = sourceSet.srcDir
                     dataDir = sourceSet.dataDir
-                    planFile = terraformDestroyPlanOutputFile
+                    planFile = sourceSet.outputDestroyBinaryPlan
                     onlyIf {
                         val canExecuteApply = terraformExtension.destroySpec.isSatisfiedBy(this)
                         if (!canExecuteApply) logger.warn(
