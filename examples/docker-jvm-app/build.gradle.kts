@@ -6,10 +6,6 @@ plugins {
     application
 }
 
-repositories {
-    mavenCentral()
-}
-
 application {
     mainClass.set("org.jetbrains.gradle.docker.MainKt")
 }

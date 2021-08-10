@@ -7,6 +7,10 @@ allprojects {
     version = System.getenv("GITHUB_REF")?.substringAfterLast("/") ?: "0.0.1"
 
     localProperties?.let { extra.setAll(Properties(it)) }
+
+    repositories {
+        mavenCentral()
+    }
 }
 
 fun Properties(from: File) = Properties().apply { load(from.inputStream().buffered()) }
