@@ -15,7 +15,7 @@ open class TerraformPlan : AbstractTerraformExec() {
 
     @get:InputFile
     @get:Optional
-    val variablesFile by project.objects.nullableProperty<File>()
+    var variablesFile by project.objects.nullableProperty<File>()
 
     @get:Input
     @get:Optional
@@ -25,7 +25,7 @@ open class TerraformPlan : AbstractTerraformExec() {
     @get:Optional
     var replace: String? by project.objects.nullableProperty()
 
-    @get: Input
+    @get:Input
     @get:Optional
     var target by project.objects.nullableProperty<String>()
 

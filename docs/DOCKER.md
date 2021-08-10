@@ -77,7 +77,7 @@ docker {
         }
         create("other-image") {
             // image name defaults to otherImage
-            // image version defaults to project.version as String
+            // image version defaults to "project.version.toString()"
 
             setupJvmApp(JvmBaseImages.OpenJRE16Slim)
             // setupJvmApp("openjdk", "16-jre-slim")

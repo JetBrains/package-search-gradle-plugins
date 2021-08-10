@@ -13,7 +13,7 @@ import org.gradle.api.Named
  * @param imageNamePrefix The prefix that is needed to be added to an image tag to correctly push
  * it in the repository.
  */
-open class DockerRegistryCredentials(
+data class DockerRegistryCredentials(
     private val name: String,
     var username: String = "",
     var password: String = "",

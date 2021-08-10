@@ -6,6 +6,7 @@ import org.gradle.kotlin.dsl.getValue
 import org.gradle.kotlin.dsl.property
 import org.gradle.kotlin.dsl.provideDelegate
 import org.gradle.kotlin.dsl.setValue
+import org.jetbrains.gradle.plugins.addAll
 import org.jetbrains.gradle.plugins.propertyWithDefault
 import java.io.File
 
@@ -17,7 +18,9 @@ open class TerraformInit : AbstractTerraformExec() {
     @get:OutputDirectory
     override var dataDir by project.objects.property<File>()
 
-    override fun getTerraformArguments() =
-        listOf("init", "-input=false", "-backend=$useBackend")
+    override fun getTerraformArguments() = buildList<String> {
+        addAll("init", "-input=false")
+        if (!useBackend) add("-backend=true")
+    }
 
 }

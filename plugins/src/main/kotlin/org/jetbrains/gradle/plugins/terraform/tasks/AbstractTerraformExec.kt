@@ -11,8 +11,19 @@ import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
 import org.jetbrains.gradle.plugins.terraform.TerraformPlugin
 import java.io.File
+import java.nio.file.Paths
+import kotlin.io.path.absolutePathString
 
 abstract class AbstractTerraformExec : DefaultTask() {
+
+    companion object {
+        private fun getAWSCredentialsEnv() =
+            System.getenv("AWS_SHARED_CREDENTIALS_FILE")
+                ?: Paths.get(
+                    System.getProperty("user.home"),
+                    ".aws", "credentials"
+                ).toAbsolutePath().toString()
+    }
 
     init {
         group = TerraformPlugin.TASK_GROUP
@@ -39,7 +50,10 @@ abstract class AbstractTerraformExec : DefaultTask() {
         executable = terraformExecutable.absolutePath
         workingDir = sourcesDirectory
         args = getTerraformArguments()
-        environment = mapOf("TF_DATA_DIR" to dataDir.absolutePath)
+        environment = mapOf(
+            "TF_DATA_DIR" to dataDir.absolutePath,
+            "AWS_SHARED_CREDENTIALS_FILE" to getAWSCredentialsEnv()
+        )
         customizeExec()
     }
 }
