@@ -11,7 +11,7 @@ plugins {
 version = "1.0.0" // will be used for image tag version
 
 docker {
-    repositories {
+    registries {
         dockerHub("username", System.getenv("DOCKER_HUB_PASSWORD"))
     }
     images {
