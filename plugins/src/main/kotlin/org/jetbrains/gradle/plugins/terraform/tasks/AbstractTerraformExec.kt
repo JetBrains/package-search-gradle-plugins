@@ -15,6 +15,7 @@ import java.nio.file.Paths
 abstract class AbstractTerraformExec : DefaultTask() {
 
     companion object {
+
         private fun getAWSCredentialsEnv() =
             System.getenv("AWS_SHARED_CREDENTIALS_FILE")
                 ?: Paths.get(

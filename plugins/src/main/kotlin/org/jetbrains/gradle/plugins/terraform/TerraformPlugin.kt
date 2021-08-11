@@ -58,7 +58,20 @@ open class TerraformPlugin : Plugin<Project> {
         terraformExtension.extensions.add("sourceSets", sourceSets)
 
         sourceSets.create("main")
-
+        val terraformInit by tasks.creating
+        val terraformShow by tasks.creating
+        val terraformDestroyShow by tasks.creating
+        val terraformPlan by tasks.creating {
+            dependsOn(terraformInit)
+            finalizedBy(terraformShow)
+        }
+        terraformShow.dependsOn(terraformPlan)
+        val terraformDestroyPlan by tasks.creating {
+            dependsOn(terraformInit)
+            finalizedBy(terraformDestroyShow)
+        }
+        val terraformApply by tasks.creating
+        val terraformDestroy by tasks.creating
         afterEvaluate {
             val copyLambdas by tasks.registering(Sync::class) {
                 from(lambda)
@@ -78,7 +91,7 @@ open class TerraformPlugin : Plugin<Project> {
                         dataDir = sourceSet.dataDir
                         sourceSet.tasksProvider.initActions.executeAllOn(this)
                     }
-
+                terraformInit.dependsOn(tfInit)
                 val tfShow = tasks.create<TerraformShow>("terraform${taskName}Show") {
                     sourcesDirectory = sourceSet.srcDir
                     dataDir = sourceSet.dataDir
@@ -86,7 +99,7 @@ open class TerraformPlugin : Plugin<Project> {
                     outputJsonPlanFile = sourceSet.outputJsonPlan
                     sourceSet.tasksProvider.showActions.executeAllOn(this)
                 }
-
+                terraformShow.dependsOn(terraformShow)
                 val tfPlan = tasks.register<TerraformPlan>("terraform${taskName}Plan") {
                     dependsOn(tfInit, copyLambdas)
                     sourcesDirectory = sourceSet.srcDir
@@ -96,10 +109,10 @@ open class TerraformPlugin : Plugin<Project> {
                     finalizedBy(tfShow)
                     sourceSet.tasksProvider.planActions.executeAllOn(this)
                 }
-
+                terraformPlan.dependsOn(tfPlan)
                 tfShow.dependsOn(tfPlan)
 
-                tasks.register<TerraformApply>("terraform${taskName}Apply") {
+                val tfApply = tasks.register<TerraformApply>("terraform${taskName}Apply") {
                     dependsOn(tfPlan)
                     sourcesDirectory = sourceSet.srcDir
                     dataDir = sourceSet.dataDir
@@ -114,6 +127,7 @@ open class TerraformPlugin : Plugin<Project> {
                     }
                     sourceSet.tasksProvider.applyActions.executeAllOn(this)
                 }
+                terraformApply.dependsOn(tfApply)
 
                 val tfDestroyShow = tasks.create<TerraformShow>("terraform${taskName}DestroyShow") {
                     inputPlanFile = sourceSet.outputDestroyBinaryPlan
@@ -122,7 +136,7 @@ open class TerraformPlugin : Plugin<Project> {
                     outputJsonPlanFile = sourceSet.outputDestroyJsonPlan
                     sourceSet.tasksProvider.destroyShowActions.executeAllOn(this)
                 }
-
+                terraformDestroyShow.dependsOn(tfDestroyShow)
                 val tfDestroyPlan = tasks.register<TerraformPlan>("terraform${taskName}DestroyPlan") {
                     dependsOn(tfInit, copyLambdas)
                     sourcesDirectory = sourceSet.srcDir
@@ -133,10 +147,10 @@ open class TerraformPlugin : Plugin<Project> {
                     finalizedBy(tfDestroyShow)
                     sourceSet.tasksProvider.destroyPlanActions.executeAllOn(this)
                 }
-
+                terraformDestroyPlan.dependsOn(tfDestroyPlan)
                 tfDestroyShow.dependsOn(tfDestroyPlan)
 
-                tasks.register<TerraformApply>("terraform${taskName}Destroy") {
+                val tfDestroy = tasks.register<TerraformApply>("terraform${taskName}Destroy") {
                     dependsOn(tfDestroyPlan)
                     sourcesDirectory = sourceSet.srcDir
                     dataDir = sourceSet.dataDir
@@ -151,6 +165,7 @@ open class TerraformPlugin : Plugin<Project> {
                     }
                     sourceSet.tasksProvider.destroyActions.executeAllOn(this)
                 }
+                terraformDestroy.dependsOn(tfDestroy)
             }
         }
     }
