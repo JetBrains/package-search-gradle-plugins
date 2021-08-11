@@ -2,17 +2,18 @@ name: Test plugins
 on: [ push ]
 jobs:
   run-gradle:
-    runs-on: ubuntu-latest
     name: Run Ci tests
     strategy:
       matrix:
         os: [ macos-latest, windows-latest, ubuntu-latest ]
+        java-version: [ 8, 11, 16 ]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-java@v2
         with:
           distribution: 'adopt'
-          java-version: 16
+          java-version: ${{ matrix.java-version }}
 
       # Docker tests
       - name: Docker CLI test
@@ -26,7 +27,7 @@ jobs:
         with:
           arguments: dockerPush
       - name: Publish 'Docker CLI test' annotation
-        run: 'echo "::warning::Docker CLI test build scan: ${{ steps.docker-cli.outputs.build-scan-url }}"'
+        run: 'echo "::warning::Java ${{ matrix.java-version }} | Docker CLI test build scan: ${{ steps.docker-cli.outputs.build-scan-url }}"'
         if: steps.docker-cli.outputs.exit_code == 0
 
       - name: Docker REST API test
@@ -42,7 +43,7 @@ jobs:
         with:
           arguments: dockerPush
       - name: Publish 'Docker REST API' annotation
-        run: 'echo "::warning::Docker REST API test build scan: ${{ steps.docker-rest.outputs.build-scan-url }}"'
+        run: 'echo "::warning::Java ${{ matrix.java-version }} | Docker REST API test build scan: ${{ steps.docker-rest.outputs.build-scan-url }}"'
         if: matrix.os != 'windows-latest' && steps.docker-rest.outputs.exit_code == 0
 
       # liquibase tests
@@ -53,7 +54,7 @@ jobs:
         with:
           arguments: liquibaseUpdate
       - name: Publish Liquibase annotation
-        run: 'echo "::warning::Liquibase test build scan: ${{ steps.liquibase.outputs.build-scan-url }}"'
+        run: 'echo "::warning::Java ${{ matrix.java-version }} | Liquibase test build scan: ${{ steps.liquibase.outputs.build-scan-url }}"'
         if: steps.liquibase.outputs.exit_code == 0
 
       # terraform tests
@@ -64,5 +65,5 @@ jobs:
         with:
           arguments: terraformMainInit
       - name: Publish Terraform annotation
-        run: 'echo "::warning::Terraform test build scan: ${{ steps.terraform.outputs.build-scan-url }}"'
+        run: 'echo "::warning::Java ${{ matrix.java-version }} | Terraform test build scan: ${{ steps.terraform.outputs.build-scan-url }}"'
         if: steps.terraform.outputs.exit_code == 0
