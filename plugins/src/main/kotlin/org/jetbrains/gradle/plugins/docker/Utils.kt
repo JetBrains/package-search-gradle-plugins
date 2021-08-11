@@ -9,13 +9,12 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.TaskContainerScope
-import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
 import org.jetbrains.gradle.plugins.NullOutputStream
 import org.jetbrains.gradle.plugins.docker.tasks.*
 import org.jetbrains.gradle.plugins.suffixIfNot
 
-internal fun buildDockerHttpClient(
+internal fun Project.buildDockerHttpClient(
     repo: DockerRegistryCredentials?,
     dockerRemoteConfig: DockerExtension.Remote
 ): DockerClient {
@@ -27,9 +26,11 @@ internal fun buildDockerHttpClient(
                 dockerRemoteConfig.dockerCertPath?.let { withDockerCertPath(it.absolutePath) }
                 withRegistryUrl(repo.url.takeIf { it.isNotEmpty() }
                     ?: error("Docker Repository ${repo.name} has an empty url"))
-                repo.username.takeIf { it.isNotEmpty() }?.let { withRegistryUsername(it) }
+                repo.username?.takeIf { it.isNotEmpty() }?.let { withRegistryUsername(it) }
                 withRegistryPassword(repo.password)
-                repo.email.takeIf { it.isNotEmpty() }?.let { withRegistryEmail(it) }
+                repo.email?.takeIf { it.isNotEmpty() }?.let { withRegistryEmail(it) }
+                if (repo.username == null && repo.email == null)
+                    logger.warn("Username and email for registry ${repo.name} are both null, skipping login.")
             }
         }
         .build()
@@ -60,7 +61,7 @@ internal fun TaskContainerScope.registerDockerBuild(
     remoteConfig: DockerExtension.Remote,
     buildSpec: DockerBuildSpec.() -> Unit
 ) = register<DockerBuild>(dockerBuildTaskName) {
-    client = buildDockerHttpClient(null, remoteConfig)
+    client = project.buildDockerHttpClient(null, remoteConfig)
     buildSpec()
 }
 
@@ -73,24 +74,24 @@ internal fun TaskContainerScope.registerDockerPush(
 ) = register<DockerPush>(dockerPushTaskName) {
     dependsOn(dockerImageBuild)
     imageTag = repo.imageNamePrefix.suffixIfNot("/") + imageData.imageNameWithTag
-    client = buildDockerHttpClient(repo, remoteConfig)
+    client = project.buildDockerHttpClient(repo, remoteConfig)
 }
 
 internal fun TaskContainerScope.registerDockerExecPush(
     repoName: String,
     repo: DockerRegistryCredentials,
     dockerPushTaskName: String,
-    dockerPushSpec: DockerPushSpec.() -> Unit
+    dockerPushSpec: DockerPushSpec.() -> Unit,
+    rootProject: Project
 ): TaskProvider<DockerExecPush> {
     val dockerLoginTaskName = "docker${repoName}Login"
     val dockerLogin =
-        findByName(dockerLoginTaskName) as? DockerExecLogin ?: register<DockerExecLogin>(dockerLoginTaskName) {
-            url = repo.url
-            username = repo.username.takeIf { it.isNotEmpty() }
-                ?: repo.email.takeIf { it.isNotEmpty() }
-                        ?: error("Docker repository \"${repo.name}\" has empty username and email")
-            password = repo.password
-        }
+        rootProject.tasks.findByName(dockerLoginTaskName) as? DockerExecLogin
+            ?: rootProject.tasks.register<DockerExecLogin>(dockerLoginTaskName) {
+                url = repo.url
+                username = repo.username?.takeIf { it.isNotEmpty() } ?: repo.email?.takeIf { it.isNotEmpty() }
+                password = repo.password
+            }
     return register<DockerExecPush>(dockerPushTaskName) {
         dependsOn(dockerLogin)
         dockerPushSpec()

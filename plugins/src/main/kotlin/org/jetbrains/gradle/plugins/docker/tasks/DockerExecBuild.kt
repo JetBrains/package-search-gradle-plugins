@@ -24,7 +24,7 @@ open class DockerExecBuild : AbstractDockerExecTask(), DockerBuildSpec {
     override var contextFolder by project.objects.property<File>()
 
     @get:Input
-    override var buildArgs by project.objects.mapProperty<String, String>()
+    override var buildArgs by project.objects.mapProperty<String, String?>()
 
     override fun provideArguments(): List<String> = buildList {
         add("build")

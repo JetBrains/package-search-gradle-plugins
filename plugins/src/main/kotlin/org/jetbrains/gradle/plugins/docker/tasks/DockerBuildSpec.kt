@@ -6,5 +6,5 @@ import java.io.File
 interface DockerBuildSpec : Task {
     var tags: List<String>
     var contextFolder: File
-    var buildArgs: Map<String, String>
+    var buildArgs: Map<String, String?>
 }

@@ -6,7 +6,8 @@ jobs:
       matrix:
         os: [ macos-latest, windows-latest, ubuntu-latest ]
         java-version: [ 8, 11, 16 ]
-    name: Run CI tests on ${{ matrix.os }} with Java ${{ matrix.java-version }}
+        gradle-version: [ 5.6.4, 6.9, 7.1.1, current ]
+    name: ${{ matrix.os }}, Java ${{ matrix.java-version }}, Gradle ${{ matrix.gradle-version }}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
@@ -26,8 +27,11 @@ jobs:
           CONTAINER_REGISTRY_USERNAME: ${{secrets.CONTAINER_REGISTRY_USERNAME}}
         with:
           arguments: dockerPush
+          gradle-version: ${{ matrix.gradle-version }}
       - name: Publish 'Docker CLI test' annotation
-        run: 'echo "::warning::Java ${{ matrix.java-version }} | Docker CLI test build scan: ${{ steps.docker-cli.outputs.build-scan-url }}"'
+        run: >
+          'echo "::warning::Java ${{ matrix.java-version }}, Gradle ${{ matrix.gradle-version }}
+          | Docker CLI test build scan: ${{ steps.docker-cli.outputs.build-scan-url }}"'
         if: ${{ always() }}
 
       - name: Docker REST API test
@@ -42,8 +46,11 @@ jobs:
           CONTAINER_REGISTRY_USERNAME: ${{secrets.CONTAINER_REGISTRY_USERNAME}}
         with:
           arguments: dockerPush
+          gradle-version: ${{ matrix.gradle-version }}
       - name: Publish 'Docker REST API' annotation
-        run: 'echo "::warning::Java ${{ matrix.java-version }} | Docker REST API test build scan: ${{ steps.docker-rest.outputs.build-scan-url }}"'
+        run: >
+          'echo "::warning::Java ${{ matrix.java-version }}, Gradle ${{ matrix.gradle-version }}
+          | Docker REST API test build scan: ${{ steps.docker-rest.outputs.build-scan-url }}"'
         if: matrix.os != 'windows-latest'
 
       # liquibase tests
@@ -53,17 +60,23 @@ jobs:
         if: ${{ always() }}
         with:
           arguments: liquibaseUpdate
+          gradle-version: ${{ matrix.gradle-version }}
       - name: Publish Liquibase annotation
-        run: 'echo "::warning::Java ${{ matrix.java-version }} | Liquibase test build scan: ${{ steps.liquibase.outputs.build-scan-url }}"'
+        run: >
+          'echo "::warning::Java ${{ matrix.java-version }}, Gradle ${{ matrix.gradle-version }}
+          | Liquibase test build scan: ${{ steps.liquibase.outputs.build-scan-url }}"'
         if: ${{ always() }}
 
       # terraform tests
-      - uses: gradle/gradle-build-action@v1
-        name: Terraform test
+      - name: Terraform test
+        uses: gradle/gradle-build-action@v1
         if: ${{ always() }}
         id: terraform
         with:
           arguments: terraformMainInit
+          gradle-version: ${{ matrix.gradle-version }}
       - name: Publish Terraform annotation
-        run: 'echo "::warning::Java ${{ matrix.java-version }} | Terraform test build scan: ${{ steps.terraform.outputs.build-scan-url }}"'
+        run: >
+          'echo "::warning::Java ${{ matrix.java-version }}, Gradle ${{ matrix.gradle-version }}
+          | Terraform test build scan: ${{ steps.terraform.outputs.build-scan-url }}"'
         if: ${{ always() }}

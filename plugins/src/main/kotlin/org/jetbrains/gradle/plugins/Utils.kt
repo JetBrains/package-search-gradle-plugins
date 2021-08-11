@@ -78,7 +78,7 @@ internal fun String.toCamelCase() =
 
 internal fun String.fromCamelCaseToKebabCase(includeSymbols: Boolean = false) = map { char ->
     when {
-        char.isUpperCase() -> "-${char.lowercase()}"
+        char.isUpperCase() -> "-${char.toString().toLowerCase()}"
         char.isLetter() -> char
         else -> if (includeSymbols) char else '-'
     }

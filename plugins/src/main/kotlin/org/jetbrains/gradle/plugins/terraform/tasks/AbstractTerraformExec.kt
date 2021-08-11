@@ -4,7 +4,6 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.*
 import org.gradle.process.ExecResult
@@ -12,7 +11,6 @@ import org.gradle.process.ExecSpec
 import org.jetbrains.gradle.plugins.terraform.TerraformPlugin
 import java.io.File
 import java.nio.file.Paths
-import kotlin.io.path.absolutePathString
 
 abstract class AbstractTerraformExec : DefaultTask() {
 

@@ -15,9 +15,9 @@ import org.gradle.api.Named
  */
 data class DockerRegistryCredentials(
     private val name: String,
-    var username: String = "",
-    var password: String = "",
-    var email: String = "",
+    var username: String? = "",
+    var password: String? = "",
+    var email: String? = "",
     var url: String = "",
     var imageNamePrefix: String = url
 ) : Named {
@@ -33,6 +33,6 @@ data class DockerRegistryCredentials(
  * @param password Password used to log in the repository.
  */
 data class DockerHubCredentials(
-    var username: String = "",
-    var password: String = "",
+    var username: String? = "",
+    var password: String? = ""
 )

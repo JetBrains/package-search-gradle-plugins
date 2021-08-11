@@ -19,12 +19,12 @@ open class DockerBuild : AbstractDockerTask(), DockerBuildSpec {
     override var contextFolder by project.objects.property<File>()
 
     @get:Input
-    override var buildArgs by project.objects.mapProperty<String, String>()
+    override var buildArgs by project.objects.mapProperty<String, String?>()
 
     @TaskAction
     fun execute() {
         client.buildImageCmd().apply {
-            this@DockerBuild.buildArgs.forEach { (k, v) -> withBuildArg(k, v) }
+            this@DockerBuild.buildArgs.forEach { (k, v) -> withBuildArg(k, v.toString()) }
             withTags(this@DockerBuild.tags.toSet().also { println(it) })
             withBaseDirectory(contextFolder)
             withDockerfile(contextFolder.resolve("Dockerfile"))

@@ -29,7 +29,7 @@ data class DockerImage(
     private val name: String,
     private val project: Project,
     var imageName: String = name.fromCamelCaseToKebabCase(),
-    var imageVersion: String = project.version as String,
+    var imageVersion: String = project.version as String
 ) : Named {
 
     /**
@@ -41,7 +41,7 @@ data class DockerImage(
     /**
      * Argument passed during image building.
      */
-    var buildArgs: Map<String, String> = mapOf()
+    var buildArgs: MutableMap<String, String?> = mutableMapOf()
 
     internal val copySpecActions: MutableList<CopySourceSpec.() -> Unit> = mutableListOf()
     internal val tasksCustomizationContainer = Tasks()

@@ -103,7 +103,13 @@ open class DockerPlugin : Plugin<Project> {
                                         imageData,
                                         remoteConfig
                                     )
-                                } ?: registerDockerExecPush(repoName, repo, dockerPushTaskName, dockerPushSpec)
+                                } ?: registerDockerExecPush(
+                                    repoName,
+                                    repo,
+                                    dockerPushTaskName,
+                                    dockerPushSpec,
+                                    rootProject
+                                )
                             dockerPush.dependsOn(dockerImagePush)
                         }
                     }
