@@ -28,7 +28,7 @@ jobs:
           arguments: dockerPush
       - name: Publish 'Docker CLI test' annotation
         run: 'echo "::warning::Java ${{ matrix.java-version }} | Docker CLI test build scan: ${{ steps.docker-cli.outputs.build-scan-url }}"'
-        if: steps.docker-cli.outputs.exit_code == 0
+        if: ${{ always() }}
 
       - name: Docker REST API test
         uses: gradle/gradle-build-action@v1
@@ -44,7 +44,7 @@ jobs:
           arguments: dockerPush
       - name: Publish 'Docker REST API' annotation
         run: 'echo "::warning::Java ${{ matrix.java-version }} | Docker REST API test build scan: ${{ steps.docker-rest.outputs.build-scan-url }}"'
-        if: matrix.os != 'windows-latest' && steps.docker-rest.outputs.exit_code == 0
+        if: matrix.os != 'windows-latest'
 
       # liquibase tests
       - name: Liquibase test
@@ -55,7 +55,7 @@ jobs:
           arguments: liquibaseUpdate
       - name: Publish Liquibase annotation
         run: 'echo "::warning::Java ${{ matrix.java-version }} | Liquibase test build scan: ${{ steps.liquibase.outputs.build-scan-url }}"'
-        if: steps.liquibase.outputs.exit_code == 0
+        if: ${{ always() }}
 
       # terraform tests
       - uses: gradle/gradle-build-action@v1
@@ -66,4 +66,4 @@ jobs:
           arguments: terraformMainInit
       - name: Publish Terraform annotation
         run: 'echo "::warning::Java ${{ matrix.java-version }} | Terraform test build scan: ${{ steps.terraform.outputs.build-scan-url }}"'
-        if: steps.terraform.outputs.exit_code == 0
+        if: ${{ always() }}
