@@ -5,6 +5,7 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.kotlin.dsl.*
 import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
@@ -22,6 +23,10 @@ abstract class AbstractTerraformExec : DefaultTask() {
                     System.getProperty("user.home"),
                     ".aws", "credentials"
                 ).toAbsolutePath().toString()
+
+        private fun getWindowsTmpPath(fallback: String) =
+            System.getenv("TMP") ?: System.getenv("TEMP")
+            ?: fallback
     }
 
     init {
@@ -49,10 +54,15 @@ abstract class AbstractTerraformExec : DefaultTask() {
         executable = terraformExecutable.absolutePath
         workingDir = sourcesDirectory
         args = getTerraformArguments()
-        environment = mapOf(
-            "TF_DATA_DIR" to dataDir.absolutePath,
-            "AWS_SHARED_CREDENTIALS_FILE" to getAWSCredentialsEnv()
-        )
+        environment = buildMap<String, String> {
+            put("TF_DATA_DIR", dataDir.absolutePath)
+            put("AWS_SHARED_CREDENTIALS_FILE", getAWSCredentialsEnv())
+            if (OperatingSystem.current().isWindows) {
+                val tmpPath = getWindowsTmpPath(project.file("${project.buildDir}/tmp").absolutePath)
+                put("TMP", tmpPath)
+                put("TEMP", tmpPath)
+            }
+        }
         customizeExec()
     }
 }
