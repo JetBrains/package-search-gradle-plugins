@@ -41,7 +41,7 @@ data class DockerImage(
     /**
      * Argument passed during image building.
      */
-    var buildArgs: MutableMap<String, String> = mutableMapOf()
+    var buildArgs: Map<String, String> = mapOf()
 
     internal val copySpecActions: MutableList<CopySourceSpec.() -> Unit> = mutableListOf()
     internal val tasksCustomizationContainer = Tasks()
