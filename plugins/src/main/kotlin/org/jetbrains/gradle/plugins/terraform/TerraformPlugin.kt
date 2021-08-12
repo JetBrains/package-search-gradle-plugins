@@ -58,20 +58,33 @@ open class TerraformPlugin : Plugin<Project> {
         terraformExtension.extensions.add("sourceSets", sourceSets)
 
         sourceSets.create("main")
-        val terraformInit by tasks.creating
-        val terraformShow by tasks.creating
-        val terraformDestroyShow by tasks.creating
+        val terraformInit by tasks.creating {
+            group = TASK_GROUP
+        }
+        val terraformShow by tasks.creating {
+            group = TASK_GROUP
+        }
+        val terraformDestroyShow by tasks.creating {
+            group = TASK_GROUP
+        }
         val terraformPlan by tasks.creating {
+            group = TASK_GROUP
             dependsOn(terraformInit)
             finalizedBy(terraformShow)
         }
         terraformShow.dependsOn(terraformPlan)
         val terraformDestroyPlan by tasks.creating {
+            group = TASK_GROUP
             dependsOn(terraformInit)
             finalizedBy(terraformDestroyShow)
         }
-        val terraformApply by tasks.creating
-        val terraformDestroy by tasks.creating
+        val terraformApply by tasks.creating {
+            group = TASK_GROUP
+        }
+        val terraformDestroy by tasks.creating {
+            group = TASK_GROUP
+        }
+
         afterEvaluate {
             val copyLambdas by tasks.registering(Sync::class) {
                 from(lambda)
@@ -121,7 +134,7 @@ open class TerraformPlugin : Plugin<Project> {
                         val canExecuteApply = terraformExtension.applySpec.isSatisfiedBy(this)
                         if (!canExecuteApply) logger.warn(
                             "Cannot execute $name. Please check " +
-                                    "your terraform extension in the script."
+                                "your terraform extension in the script."
                         )
                         canExecuteApply
                     }
@@ -159,7 +172,7 @@ open class TerraformPlugin : Plugin<Project> {
                         val canExecuteApply = terraformExtension.destroySpec.isSatisfiedBy(this)
                         if (!canExecuteApply) logger.warn(
                             "Cannot execute $name. Please check " +
-                                    "your terraform extension in the script."
+                                "your terraform extension in the script."
                         )
                         canExecuteApply
                     }
@@ -169,5 +182,4 @@ open class TerraformPlugin : Plugin<Project> {
             }
         }
     }
-
 }
