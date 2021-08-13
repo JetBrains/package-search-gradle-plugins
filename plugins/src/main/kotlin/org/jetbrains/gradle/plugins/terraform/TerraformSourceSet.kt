@@ -2,6 +2,7 @@ package org.jetbrains.gradle.plugins.terraform
 
 import org.gradle.api.Action
 import org.gradle.api.Named
+import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.mapProperty
 import org.gradle.kotlin.dsl.provideDelegate
@@ -15,23 +16,39 @@ import java.io.File
 
 open class TerraformSourceSet(private val project: Project, private val name: String) : Named {
 
-    private val baseBuildDir
+    internal val baseBuildDir
         get() = "${project.buildDir}/terraform/$name"
 
     /**
      * The main directory in which Terraform will be executed.
      * Should contain the sources. Defaults to `"src/$name/terraform"`
      */
-    var srcDir: File = project.file("src/$name/terraform")
+    var srcDirs = mutableSetOf(project.file("src/$name/terraform"))
 
     var dataDir: File = project.file("$baseBuildDir/data")
+
+    var lockFile: File = project.file("src/$name/terraform/.terraform.lock.hcl")
 
     var outputJsonPlan: File = project.file("$baseBuildDir/plan.json")
     var outputDestroyJsonPlan: File = project.file("$baseBuildDir/destroyPlan.json")
     var outputBinaryPlan: File = project.file("$baseBuildDir/plan.bin")
     var outputDestroyBinaryPlan: File = project.file("$baseBuildDir/destroyPlan.bin")
+    var dependsOn = setOf<TerraformSourceSet>()
+        private set
 
     internal val tasksProvider = TasksProvider()
+
+    fun dependsOn(sourceSet: TerraformSourceSet) {
+        if (sourceSet != this) {
+            dependsOn = dependsOn + sourceSet
+        }
+    }
+
+    fun dependsOn(sourceSet: NamedDomainObjectProvider<TerraformSourceSet>) {
+        if (sourceSet != this) {
+            dependsOn = dependsOn + sourceSet.get()
+        }
+    }
 
     /**
      * Variables used to execute `terraform plan` and `terraform destroy`.
@@ -39,11 +56,11 @@ open class TerraformSourceSet(private val project: Project, private val name: St
     var planVariables by project.objects.mapProperty<String, String>()
 
     /**
-     * Sets the main directory in which Terraform will be executed.
+     * Adds the main directory in which Terraform will be executed.
      * Should contain the sources.
      */
     fun srcDir(string: String) {
-        srcDir = project.file(string)
+        srcDirs.add(project.file(string))
     }
 
     /**
@@ -52,6 +69,8 @@ open class TerraformSourceSet(private val project: Project, private val name: St
     fun commands(action: Action<TasksProvider>) {
         action.execute(tasksProvider)
     }
+
+    override fun getName() = name
 
     class TasksProvider {
         internal val initActions = mutableListOf<Action<TerraformInit>>()
@@ -115,7 +134,5 @@ open class TerraformSourceSet(private val project: Project, private val name: St
         }
 
     }
-
-    override fun getName() = name
 
 }

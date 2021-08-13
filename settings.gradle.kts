@@ -1,4 +1,5 @@
 @file:Suppress("UnstableApiUsage")
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 rootProject.name = "jetbrains-gradle-plugins"
 
@@ -21,4 +22,11 @@ gradleEnterprise {
     }
 }
 
-include(":examples", ":examples:docker-jvm-app", ":examples:terraform", ":examples:liquibase")
+include(
+    ":examples",
+    ":examples:docker-jvm-app",
+    ":examples:terraform",
+    ":examples:terraform:project-a",
+    ":examples:terraform:project-b",
+    ":examples:liquibase"
+)

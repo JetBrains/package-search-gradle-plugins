@@ -3,6 +3,7 @@ package org.jetbrains.gradle.plugins.terraform
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.internal.os.OperatingSystem
+import java.io.File
 
 internal fun evaluateTerraformName(version: String) =
     "terraform_$version" + when {
@@ -33,4 +34,17 @@ internal fun Project.generateTerraformDetachedConfiguration(version: String): Co
     val configuration = configurations.detachedConfiguration(dependency)
     configuration.isTransitive = false
     return configuration
+}
+
+internal fun TerraformSourceSet.getSourceDependencies(): Set<File> {
+    val directories = mutableSetOf<File>()
+    val visited = mutableSetOf<TerraformSourceSet>()
+    val queue = mutableListOf(this)
+    while (queue.isNotEmpty()) {
+        val currentSourceSet = queue.removeAt(0)
+        visited.add(currentSourceSet)
+        directories.addAll(currentSourceSet.srcDirs)
+        queue.addAll(currentSourceSet.dependsOn.filter { it !in visited })
+    }
+    return directories
 }

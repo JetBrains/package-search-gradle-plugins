@@ -55,13 +55,8 @@ abstract class AbstractTerraformExec : DefaultTask() {
         workingDir = sourcesDirectory
         args = getTerraformArguments()
         environment = buildMap<String, String> {
+            putAll(System.getenv())
             put("TF_DATA_DIR", dataDir.absolutePath)
-            put("AWS_SHARED_CREDENTIALS_FILE", getAWSCredentialsEnv())
-            if (OperatingSystem.current().isWindows) {
-                val tmpPath = getWindowsTmpPath(project.file("${project.buildDir}/tmp").absolutePath)
-                put("TMP", tmpPath)
-                put("TEMP", tmpPath)
-            }
         }
         customizeExec()
     }

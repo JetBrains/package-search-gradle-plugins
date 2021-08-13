@@ -17,11 +17,9 @@ import org.gradle.kotlin.dsl.property
 import org.jetbrains.gradle.plugins.docker.DockerImage
 import org.jetbrains.gradle.plugins.docker.DockerRegistryCredentials
 import java.io.OutputStream
+import kotlin.properties.ReadOnlyProperty
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
-
-typealias DockerImagesContainer = NamedDomainObjectContainer<DockerImage>
-typealias DockerRepositoriesContainer = NamedDomainObjectContainer<DockerRegistryCredentials>
 
 /**
  * Returns true if the container has a plugin with the given type [T], false otherwise.
@@ -34,17 +32,9 @@ internal inline fun <reified T : Plugin<*>> PluginContainer.has() =
 internal fun <K> Iterable<K.() -> Unit>.executeAllOn(context: K) =
     forEach { action -> action(context) }
 
-internal fun <K> K.applyAll(actions: Iterable<K.() -> Unit>): K {
-    actions.forEach { apply(it) }
-    return this
-}
-
 @JvmName("executeAllActionsOn")
 internal fun <K> Iterable<Action<K>>.executeAllOn(context: K) =
     forEach { action -> action(context) }
-
-internal inline fun <reified T : Any> ExtensionContainer.create(name: String, action: T.() -> Unit): T =
-    create<T>(name).apply(action)
 
 internal fun <E> MutableCollection<E>.addAll(vararg elements: E) =
     elements.forEach { add(it) }
@@ -103,3 +93,11 @@ fun OutputStream(action: (Byte) -> Unit) = object : OutputStream() {
 }
 
 fun NullOutputStream() = OutputStream { }
+internal val <T : Any> NamedDomainObjectContainer<T>.maybeCreating
+    get() = ReadOnlyProperty<Any?, T> { _, property -> maybeCreate(property.name) }
+
+internal fun <T : Any> NamedDomainObjectContainer<T>.maybeCreating(action: T.() -> Unit) =
+    ReadOnlyProperty<Any?, T> { _, property -> maybeCreate(property.name).apply(action) }
+
+internal operator fun <T> List<T>.component6() = this[5]
+internal operator fun <T> List<T>.component7() = this[6]
