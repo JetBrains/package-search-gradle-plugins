@@ -10,6 +10,7 @@ import org.gradle.api.distribution.DistributionContainer
 import org.gradle.api.distribution.plugins.DistributionPlugin
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.RelativePath
+import org.gradle.api.logging.LogLevel
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
@@ -224,6 +225,8 @@ open class TerraformPlugin @Inject constructor(
                     variables = sourceSet.planVariables
                     finalizedBy(tfShow)
                     sourceSet.tasksProvider.planActions.executeAllOn(this)
+                    if (terraformExtension.showPlanOutputInConsole)
+                        logging.captureStandardOutput(LogLevel.LIFECYCLE)
                 }
                 terraformPlan.dependsOn(tfPlan)
                 tfShow.dependsOn(tfPlan)
@@ -262,6 +265,8 @@ open class TerraformPlugin @Inject constructor(
                     variables = sourceSet.planVariables
                     finalizedBy(tfDestroyShow)
                     sourceSet.tasksProvider.destroyPlanActions.executeAllOn(this)
+                    if (terraformExtension.showPlanOutputInConsole)
+                        logging.captureStandardOutput(LogLevel.LIFECYCLE)
                 }
                 terraformDestroyPlan.dependsOn(tfDestroyPlan)
                 tfDestroyShow.dependsOn(tfDestroyPlan)
