@@ -6,17 +6,13 @@ import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Plugin
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.SetProperty
-import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.invoke
 import org.gradle.kotlin.dsl.property
-import org.jetbrains.gradle.plugins.docker.DockerImage
-import org.jetbrains.gradle.plugins.docker.DockerRegistryCredentials
 import java.io.File
 import java.io.OutputStream
 import kotlin.properties.ReadOnlyProperty
@@ -91,6 +87,7 @@ internal inline fun <reified T : Any> ObjectFactory.nullableProperty() =
 fun <T> Property<T>.nullable() = NullableProperty(this)
 
 class NullableProperty<T>(private val gradleProperty: Property<T>) : ReadWriteProperty<Any?, T?> {
+
     override fun getValue(thisRef: Any?, property: KProperty<*>): T? =
         gradleProperty.orNull
 
@@ -114,3 +111,5 @@ internal operator fun <T> List<T>.component6() = this[5]
 internal operator fun <T> List<T>.component7() = this[6]
 
 internal fun File.writeText(action: StringBuilder.() -> Unit) = writeText(buildString(action))
+
+internal fun StringBuilder.appendLine(text: String) = append(text + "\n")

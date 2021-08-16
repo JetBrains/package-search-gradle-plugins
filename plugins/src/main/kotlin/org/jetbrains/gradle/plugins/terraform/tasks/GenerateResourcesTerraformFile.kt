@@ -2,45 +2,15 @@ package org.jetbrains.gradle.plugins.terraform.tasks
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.InputDirectory
-import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.getValue
 import org.gradle.kotlin.dsl.property
 import org.gradle.kotlin.dsl.provideDelegate
 import org.gradle.kotlin.dsl.setValue
-import org.jetbrains.gradle.plugins.terraform.tasks.GenerateResourcesTerraformFile.Companion.PATH_STRING_TEMPLATE
+import org.jetbrains.gradle.plugins.appendLine
 import org.jetbrains.gradle.plugins.writeText
 import java.io.File
-
-open class CopyTerraformResourceFileInModules : DefaultTask() {
-
-    @get:InputFile
-    var inputResFile by project.objects.property<File>()
-
-    @get:InputDirectory
-    var runtimeContextDir by project.objects.property<File>()
-
-    @TaskAction
-    fun generateFiles() {
-        runtimeContextDir.walkBottomUp().filter {
-            it.isDirectory && it.name != "resources"
-                    && (it.listFiles() ?: emptyArray()).any { it.extension == "tf" }
-        }
-            .forEach { dir ->
-                val doubleDotsCount = dir.absolutePath.removePrefix(runtimeContextDir.absolutePath)
-                    .split(File.separator).size - 1
-                val pathName = buildString {
-                    if (doubleDotsCount == 0) append("./")
-                    else repeat(doubleDotsCount) { append("../") }
-                    append("resources/")
-                }
-
-                dir.resolve(inputResFile.name).writeText(inputResFile.readText().replace(PATH_STRING_TEMPLATE, pathName))
-            }
-    }
-
-}
 
 open class GenerateResourcesTerraformFile : DefaultTask() {
 
@@ -80,22 +50,34 @@ open class GenerateResourcesTerraformFile : DefaultTask() {
     private fun StringBuilder.printDirectory(directory: File) {
         val dirContent: List<File> = directory.listFiles()?.toList() ?: emptyList()
         dirContent.filter { it.isFile }.forEach { file ->
-            val resName = file.name.replace(".", "-")
+            val resName = buildString {
+                append(file.nameWithoutExtension.map { if (it.isLetterOrDigit()) it else '-' }.joinToString(""))
+                if (file.extension.isNotEmpty()) append("_${file.extension}")
+            }
             val relativePath = file.relativeTo(resourcesDirectory).path.replace(File.separator, "/")
             val resPath = "$PATH_STRING_TEMPLATE${relativePath}"
-            repeat(file.distanceFromRoot() + 1) { append("  ") }
-            appendLine("$resName = \"$resPath\"")
+            val tabsCount = file.distanceFromRoot() + 1
+            appendLine(tabsCount, "$resName = {")
+            appendLine(tabsCount + 1, "path = \"$resPath\"")
+            appendLine(tabsCount + 1, "name = \"${file.name}\"")
+            appendLine(tabsCount + 1, "name-without-extension = \"${file.nameWithoutExtension}\"")
+            appendLine(tabsCount + 1, "ext = \"${file.extension}\"")
+            appendLine(tabsCount, "}")
         }
         dirContent.filter { it.isDirectory }.forEach { dir ->
             val resName = dir.name.replace(".", "-")
             val resPath = "$PATH_STRING_TEMPLATE${dir.name}"
-            repeat(dir.distanceFromRoot() + 1) { append("  ") }
-            appendLine("$resName-dir = \"$resPath\"")
-            repeat(dir.distanceFromRoot() + 1) { append("  ") }
-            appendLine("$resName = {")
+            val tabsCount = dir.distanceFromRoot() + 1
+            appendLine(tabsCount, "$resName-dir = \"$resPath\"")
+            appendLine(tabsCount, "$resName = {")
             printDirectory(dir)
         }
         repeat(directory.distanceFromRoot() + 1) { append("  ") }
         appendLine("}")
+    }
+
+    private fun StringBuilder.appendLine(tabs: Int, text: String) {
+        repeat(tabs) { append("  ") }
+        appendLine(text)
     }
 }

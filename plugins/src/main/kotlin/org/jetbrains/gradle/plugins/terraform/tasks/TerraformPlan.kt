@@ -11,7 +11,7 @@ open class TerraformPlan : AbstractTerraformExec() {
     var isDestroy by project.objects.propertyWithDefault(false)
 
     @get:Input
-    var variables by project.objects.mapProperty<String, String>()
+    var variables by project.objects.mapProperty<String, String?>()
 
     @get:InputFile
     @get:Optional

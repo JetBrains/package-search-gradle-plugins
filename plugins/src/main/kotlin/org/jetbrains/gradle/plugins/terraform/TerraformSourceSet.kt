@@ -62,7 +62,11 @@ open class TerraformSourceSet(private val project: Project, private val name: St
     /**
      * Variables used to execute `terraform plan` and `terraform destroy`.
      */
-    var planVariables by project.objects.mapProperty<String, String>()
+    var planVariables by project.objects.mapProperty<String, String?>()
+
+    fun planVariable(key: String, value: String) {
+        planVariables = planVariables.toMutableMap().apply { put(key, value) }.toMap()
+    }
 
     /**
      * Adds the main directory in which Terraform will be executed.

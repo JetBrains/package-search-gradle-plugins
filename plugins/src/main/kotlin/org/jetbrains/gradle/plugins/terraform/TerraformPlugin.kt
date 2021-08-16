@@ -6,6 +6,8 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.component.SoftwareComponentFactory
+import org.gradle.api.distribution.DistributionContainer
+import org.gradle.api.distribution.plugins.DistributionPlugin
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.RelativePath
 import org.gradle.api.publish.PublishingExtension
@@ -17,9 +19,7 @@ import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.gradle.plugins.*
-import org.jetbrains.gradle.plugins.executeAllOn
 import org.jetbrains.gradle.plugins.terraform.tasks.*
-import org.jetbrains.gradle.plugins.toCamelCase
 import java.io.File
 import javax.inject.Inject
 
@@ -28,6 +28,7 @@ open class TerraformPlugin @Inject constructor(
 ) : Plugin<Project> {
 
     object Attributes {
+
         const val USAGE = "terraform"
         const val LIBRARY_ELEMENTS = "ZIP_ARCHIVE"
 
@@ -72,14 +73,15 @@ open class TerraformPlugin @Inject constructor(
                 val createSourcesZip = tasks.create<Zip>("terraform${taskName}Zip") {
                     from(sourceSet.getSourceDependencies().flatMap { it.srcDirs } + sourceSet.srcDirs) {
                         into("src/${sourceSet.moduleName}")
-                        include { it.file.extension == "tf" }
+                        include { it.file.extension == "tf" || it.isDirectory }
                     }
                     from(sourceSet.getSourceDependencies().flatMap { it.resourcesDirs } + sourceSet.resourcesDirs) {
                         into("resources")
                     }
                     includeEmptyDirs = false
                     exclude { it.file.endsWith(".terraform.lock.hcl") }
-                    archiveFileName.set("terraform${project.name.toCamelCase().capitalize()}${taskName}.zip")
+                    duplicatesStrategy = DuplicatesStrategy.WARN
+                    archiveFileName.set("terraform${project.name.toCamelCase().capitalize()}${taskName}.tfmodule")
                     destinationDirectory.set(file("$buildDir/terraform/archives"))
                 }
 
@@ -142,9 +144,21 @@ open class TerraformPlugin @Inject constructor(
                             attribute(Attributes.SOURCE_SET_NAME_ATTRIBUTE, sourceSet.name)
                         }
                     }
+                val tmpRestFile = file("${sourceSet.baseBuildDir}/tmp/res.tf")
+                val copyResFiles =
+                    tasks.register<CopyTerraformResourceFileInModules>("copy${taskName}ResFileInExecutionContext") {
+                        inputResFile = tmpRestFile
+                        runtimeContextDir = sourceSet.runtimeExecutionDirectory
+                    }
+                val createResFile =
+                    tasks.register<GenerateResourcesTerraformFile>("generate${taskName}ResFile") {
+                        resourcesDirectory = sourceSet.runtimeExecutionDirectory.resolve("resources")
+                        outputResourceModuleFile = tmpRestFile
+                        finalizedBy(copyResFiles)
+                    }
 
                 val copyExecutionContext = tasks.register<Sync>("generate${taskName}ExecutionContext") {
-                    dependsOn(terraformRuntimeElements, createSourcesZip)
+                    dependsOn(terraformRuntimeElements, createSourcesZip, copyLambdas)
                     from(zipTree(createSourcesZip.archiveFile)) {
                         eachFile {
                             if (relativePath.segments.first() == "src") {
@@ -168,27 +182,26 @@ open class TerraformPlugin @Inject constructor(
                     includeEmptyDirs = false
                     from(sourceSet.lockFile)
                     into(sourceSet.runtimeExecutionDirectory)
+                    finalizedBy(createResFile)
                 }
-                val createResFile =
-                    tasks.register<GenerateResourcesTerraformFile>("generate${taskName}ResFile") {
-                        dependsOn(copyExecutionContext)
-                        resourcesDirectory = copyExecutionContext.get().destinationDir.resolve("resources")
-                        outputResourceModuleFile = file("${sourceSet.baseBuildDir}/tmp/res.tf")
-                    }
-                val copyResFiles =
-                    tasks.register<CopyTerraformResourceFileInModules>("copy${taskName}ResFileInExecutionContext") {
-                        dependsOn(createResFile)
-                        inputResFile = createResFile.get().outputResourceModuleFile
-                        runtimeContextDir = copyExecutionContext.get().destinationDir
-                    }
                 val syncLockFile = tasks.register<Copy>("sync${taskName}LockFile") {
                     from(sourceSet.runtimeExecutionDirectory.resolve(".terraform.lock.hcl"))
                     into(sourceSet.lockFile.parentFile)
                     duplicatesStrategy = DuplicatesStrategy.INCLUDE
                 }
+                if (plugins.has<DistributionPlugin>()) {
+                    extensions.configure<DistributionContainer> {
+                        maybeCreate(sourceSet.name).apply {
+                            contents {
+                                from(copyExecutionContext)
+                                from(tasks.named<TerraformExtract>(TERRAFORM_EXTRACT_TASK_NAME))
+                            }
+                        }
+                    }
+                }
                 val tfInit: TaskProvider<TerraformInit> =
                     tasks.register<TerraformInit>("terraform${taskName}Init") {
-                        dependsOn(copyResFiles)
+                        dependsOn(copyExecutionContext)
                         sourcesDirectory = sourceSet.runtimeExecutionDirectory
                         dataDir = sourceSet.dataDir
                         finalizedBy(syncLockFile)
@@ -204,7 +217,7 @@ open class TerraformPlugin @Inject constructor(
                 }
                 terraformShow.dependsOn(terraformShow)
                 val tfPlan = tasks.register<TerraformPlan>("terraform${taskName}Plan") {
-                    dependsOn(tfInit, copyLambdas)
+                    dependsOn(tfInit)
                     sourcesDirectory = sourceSet.runtimeExecutionDirectory
                     dataDir = sourceSet.dataDir
                     outputPlanFile = sourceSet.outputBinaryPlan
@@ -273,5 +286,4 @@ open class TerraformPlugin @Inject constructor(
 
         }
     }
-
 }
