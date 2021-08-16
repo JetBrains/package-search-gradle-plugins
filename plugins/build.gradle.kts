@@ -2,6 +2,8 @@ plugins {
     `kotlin-dsl`
     `maven-publish`
     id("com.gradle.plugin-publish") version "0.15.0"
+    kotlin("plugin.serialization") version "1.5.20"
+    kotlin("jvm") version "1.5.20"
 }
 
 allprojects {
@@ -16,6 +18,7 @@ repositories {
 dependencies {
     api("com.github.docker-java:docker-java:3.2.11")
     api("com.github.docker-java:docker-java-transport-httpclient5:3.2.11")
+    api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.2")
 }
 
 kotlin {

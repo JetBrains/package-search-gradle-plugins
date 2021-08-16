@@ -11,11 +11,13 @@ import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.SetProperty
 import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.invoke
 import org.gradle.kotlin.dsl.property
 import org.jetbrains.gradle.plugins.docker.DockerImage
 import org.jetbrains.gradle.plugins.docker.DockerRegistryCredentials
+import java.io.File
 import java.io.OutputStream
 import kotlin.properties.ReadOnlyProperty
 import kotlin.properties.ReadWriteProperty
@@ -49,7 +51,16 @@ internal operator fun <K> ListProperty<K>.getValue(parent: Any?, property: KProp
     get()
 
 @Suppress("UnstableApiUsage")
+internal operator fun <K> SetProperty<K>.getValue(parent: Any?, property: KProperty<*>): Set<K> =
+    get()
+
+@Suppress("UnstableApiUsage")
 internal operator fun <K, V> MapProperty<K, V>.setValue(parent: Any?, property: KProperty<*>, value: Map<K, V>) {
+    set(value)
+}
+
+@Suppress("UnstableApiUsage")
+internal operator fun <V> SetProperty<V>.setValue(parent: Any?, property: KProperty<*>, value: Set<V>) {
     set(value)
 }
 
@@ -101,3 +112,5 @@ internal fun <T : Any> NamedDomainObjectContainer<T>.maybeCreating(action: T.() 
 
 internal operator fun <T> List<T>.component6() = this[5]
 internal operator fun <T> List<T>.component7() = this[6]
+
+internal fun File.writeText(action: StringBuilder.() -> Unit) = writeText(buildString(action))

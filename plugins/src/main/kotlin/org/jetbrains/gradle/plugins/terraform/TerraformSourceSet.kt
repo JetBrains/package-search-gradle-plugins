@@ -25,9 +25,18 @@ open class TerraformSourceSet(private val project: Project, private val name: St
      */
     var srcDirs = mutableSetOf(project.file("src/$name/terraform"))
 
+    var resourcesDirs = mutableSetOf(project.file("src/$name/resources"))
+
     var dataDir: File = project.file("$baseBuildDir/data")
 
     var lockFile: File = project.file("src/$name/terraform/.terraform.lock.hcl")
+
+    var moduleName = buildString {
+        append("${project.group}/${project.name}")
+        if (name != "main") append("-$name")
+    }
+
+    var runtimeExecutionDirectory = project.file("$baseBuildDir/runtimeExecution")
 
     var outputJsonPlan: File = project.file("$baseBuildDir/plan.json")
     var outputDestroyJsonPlan: File = project.file("$baseBuildDir/destroyPlan.json")
@@ -63,6 +72,10 @@ open class TerraformSourceSet(private val project: Project, private val name: St
         srcDirs.add(project.file(string))
     }
 
+    fun resourceDir(string: String) {
+        resourcesDirs.add(project.file(string))
+    }
+
     /**
      * Allows access to generated tasks for this source set.
      */
@@ -73,6 +86,7 @@ open class TerraformSourceSet(private val project: Project, private val name: St
     override fun getName() = name
 
     class TasksProvider {
+
         internal val initActions = mutableListOf<Action<TerraformInit>>()
         internal val planActions = mutableListOf<Action<TerraformPlan>>()
         internal val destroyPlanActions = mutableListOf<Action<TerraformPlan>>()
@@ -87,7 +101,6 @@ open class TerraformSourceSet(private val project: Project, private val name: St
         fun terraformInit(action: Action<TerraformInit>) {
             initActions.add(action)
         }
-
 
         /**
          * Configures an [Action]<[TerraformInit]> to be executed against the respective task.
@@ -110,7 +123,6 @@ open class TerraformSourceSet(private val project: Project, private val name: St
             planActions.add(action)
         }
 
-
         /**
          * Configures an [Action]<[TerraformPlan]> to be executed against the respective task.
          */
@@ -125,14 +137,11 @@ open class TerraformSourceSet(private val project: Project, private val name: St
             applyActions.add(action)
         }
 
-
         /**
          * Configures an [Action]<[TerraformApply]> to be executed against the respective task.
          */
         fun terraformDestroy(action: Action<TerraformApply>) {
             destroyActions.add(action)
         }
-
     }
-
 }

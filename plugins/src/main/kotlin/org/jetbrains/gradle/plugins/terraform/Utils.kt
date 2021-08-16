@@ -36,15 +36,13 @@ internal fun Project.generateTerraformDetachedConfiguration(version: String): Co
     return configuration
 }
 
-internal fun TerraformSourceSet.getSourceDependencies(): Set<File> {
-    val directories = mutableSetOf<File>()
+internal fun TerraformSourceSet.getSourceDependencies(): Set<TerraformSourceSet> {
     val visited = mutableSetOf<TerraformSourceSet>()
-    val queue = mutableListOf(this)
+    val queue = dependsOn.toMutableList()
     while (queue.isNotEmpty()) {
         val currentSourceSet = queue.removeAt(0)
         visited.add(currentSourceSet)
-        directories.addAll(currentSourceSet.srcDirs)
         queue.addAll(currentSourceSet.dependsOn.filter { it !in visited })
     }
-    return directories
+    return visited
 }

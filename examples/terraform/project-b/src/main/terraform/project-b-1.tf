@@ -54,7 +54,7 @@ resource "aws_security_group" "neptune_example" {
   egress {
     from_port   = 0
     to_port     = 0
-    protocol    = "-1"
+    protocol    = var.resources.whatever.lol
     cidr_blocks = ["0.0.0.0/0"]
   }
 
