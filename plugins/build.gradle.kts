@@ -2,8 +2,6 @@ plugins {
     `kotlin-dsl`
     `maven-publish`
     id("com.gradle.plugin-publish") version "0.15.0"
-    kotlin("plugin.serialization") version "1.5.20"
-    kotlin("jvm") version "1.5.20"
 }
 
 allprojects {
