@@ -8,5 +8,5 @@ terraform {
 }
 
 dependencies {
-    terraformApi(projects.examples.terraform.projectA)
+    terraformApi(project(":examples:terraform:project-a"))
 }

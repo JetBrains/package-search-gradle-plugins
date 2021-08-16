@@ -1,11 +1,14 @@
 package org.jetbrains.gradle.plugins.terraform.tasks
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.*
-import org.gradle.kotlin.dsl.*
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.TaskAction
+import org.gradle.kotlin.dsl.getValue
+import org.gradle.kotlin.dsl.property
 import org.gradle.kotlin.dsl.provideDelegate
-import org.jetbrains.gradle.plugins.getValue
-import org.jetbrains.gradle.plugins.setValue
+import org.gradle.kotlin.dsl.setValue
 import org.jetbrains.gradle.plugins.terraform.tasks.GenerateResourcesTerraformFile.Companion.PATH_STRING_TEMPLATE
 import org.jetbrains.gradle.plugins.writeText
 import java.io.File
@@ -32,12 +35,6 @@ open class CopyTerraformResourceFileInModules : DefaultTask() {
                     else repeat(doubleDotsCount) { append("../") }
                     append("resources/")
                 }
-                println("""
-                    From: ${dir.absolutePath}
-                    to:   ${runtimeContextDir.absolutePath}
-                    res : $pathName
-                    _______________
-                """.trimIndent())
 
                 dir.resolve(inputResFile.name).writeText(inputResFile.readText().replace(PATH_STRING_TEMPLATE, pathName))
             }
