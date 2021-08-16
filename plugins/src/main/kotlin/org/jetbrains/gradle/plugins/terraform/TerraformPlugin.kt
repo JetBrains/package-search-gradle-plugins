@@ -1,12 +1,8 @@
 package org.jetbrains.gradle.plugins.terraform
 
-import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.Task
-import org.gradle.api.artifacts.Configuration
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.attributes.Bundling
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.component.SoftwareComponentFactory
@@ -22,7 +18,6 @@ import org.gradle.api.tasks.bundling.Zip
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.gradle.plugins.*
 import org.jetbrains.gradle.plugins.executeAllOn
-import org.jetbrains.gradle.plugins.maybeCreating
 import org.jetbrains.gradle.plugins.terraform.tasks.*
 import org.jetbrains.gradle.plugins.toCamelCase
 import java.io.File
@@ -174,6 +169,18 @@ open class TerraformPlugin @Inject constructor(
                     from(sourceSet.lockFile)
                     into(sourceSet.runtimeExecutionDirectory)
                 }
+                val createResFile =
+                    tasks.register<GenerateResourcesTerraformFile>("generate${taskName}ResFile") {
+                        dependsOn(copyExecutionContext)
+                        resourcesDirectory = copyExecutionContext.get().destinationDir.resolve("resources")
+                        outputResourceModuleFile = file("${sourceSet.baseBuildDir}/tmp/res.tf")
+                    }
+                val copyResFiles =
+                    tasks.register<CopyTerraformResourceFileInModules>("copy${taskName}ResFileInExecutionContext") {
+                        dependsOn(createResFile)
+                        inputResFile = createResFile.get().outputResourceModuleFile
+                        runtimeContextDir = copyExecutionContext.get().destinationDir
+                    }
                 val syncLockFile = tasks.register<Copy>("sync${taskName}LockFile") {
                     from(sourceSet.runtimeExecutionDirectory.resolve(".terraform.lock.hcl"))
                     into(sourceSet.lockFile.parentFile)
@@ -181,7 +188,7 @@ open class TerraformPlugin @Inject constructor(
                 }
                 val tfInit: TaskProvider<TerraformInit> =
                     tasks.register<TerraformInit>("terraform${taskName}Init") {
-                        dependsOn(copyExecutionContext)
+                        dependsOn(copyResFiles)
                         sourcesDirectory = sourceSet.runtimeExecutionDirectory
                         dataDir = sourceSet.dataDir
                         finalizedBy(syncLockFile)
