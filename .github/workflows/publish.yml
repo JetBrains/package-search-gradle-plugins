@@ -20,6 +20,7 @@ jobs:
           GRADLE_PUBLISH_SECRET: ${{secrets.GRADLE_PUBLISH_SECRET}}
         with:
           build-root-directory: plugins
+          gradle-version: 7.1.1
           arguments: publishPlugins
       - name: Publish annotation
         run: 'echo "::warning::Publish build scan: ${{ steps.publish.outputs.build-scan-url }}"'
