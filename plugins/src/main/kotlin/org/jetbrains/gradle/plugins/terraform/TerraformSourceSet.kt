@@ -31,9 +31,13 @@ open class TerraformSourceSet(private val project: Project, private val name: St
 
     var lockFile: File = project.file("src/$name/terraform/.terraform.lock.hcl")
 
-    var moduleName = buildString {
-        append("${project.group}/${project.name}")
+    var metadata = TerraformModuleMetadata(project.group.toString(), buildString {
+        append(project.name)
         if (name != "main") append("-$name")
+    })
+
+    fun metadata(action: Action<TerraformModuleMetadata>) {
+        action.execute(metadata)
     }
 
     var runtimeExecutionDirectory = project.file("$baseBuildDir/runtimeExecution")
