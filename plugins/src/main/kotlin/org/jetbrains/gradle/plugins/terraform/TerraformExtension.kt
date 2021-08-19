@@ -15,6 +15,7 @@ abstract class TerraformExtension(project: Project, private val name: String) : 
     var version = "1.0.3"
 
     var showPlanOutputInConsole = true
+    var showInitOutputInConsole = true
 
     /**
      * Directory where lambdas will be stored. Can be used to pass artifacts to
