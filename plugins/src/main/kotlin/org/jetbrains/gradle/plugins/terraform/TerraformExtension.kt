@@ -5,7 +5,6 @@ import org.gradle.api.Project
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.specs.Spec
 import org.jetbrains.gradle.plugins.terraform.tasks.TerraformApply
-import java.io.File
 
 abstract class TerraformExtension(project: Project, private val name: String) : Named, ExtensionAware {
 
@@ -16,27 +15,6 @@ abstract class TerraformExtension(project: Project, private val name: String) : 
 
     var showPlanOutputInConsole = true
     var showInitOutputInConsole = true
-
-    /**
-     * Directory where lambdas will be stored. Can be used to pass artifacts to
-     * `terraform apply` tasks:
-     * ```kotlin
-     * val myProject = project(":my-project-with-shadow-plugin-applied")
-     * dependencies {
-     *      lambdas(myProject)
-     * }
-     * terraform {
-     *      sourceSets {
-     *          main {
-     *              planVariables = mapOf(
-     *                  "myProjectFatJar" to "${lambdasDirectory.absolutePath}/${myProject.name}"
-     *               )
-     *          }
-     *      }
-     * }
-     * ```
-     */
-    var lambdasDirectory: File = project.file("${project.buildDir}/terraform/lambdas")
 
     internal var applySpec = Spec<TerraformApply> {
         it.logger.error(

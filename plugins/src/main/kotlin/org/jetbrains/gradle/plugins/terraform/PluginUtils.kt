@@ -25,11 +25,8 @@ import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.kotlin.dsl.*
-import org.jetbrains.gradle.plugins.executeAllOn
-import org.jetbrains.gradle.plugins.has
-import org.jetbrains.gradle.plugins.maybeCreating
+import org.jetbrains.gradle.plugins.*
 import org.jetbrains.gradle.plugins.terraform.tasks.*
-import org.jetbrains.gradle.plugins.toCamelCase
 
 internal fun Project.setupTerraformRepository() {
     repositories {
@@ -129,7 +126,7 @@ internal fun Project.elaborateSourceSet(
     sourceSet: TerraformSourceSet,
     terraformApi: Configuration,
     terraformImplementation: Configuration,
-    copyLambdas: TaskProvider<Sync>,
+    lambdaConfiguration: Configuration,
     terraformExtract: TaskProvider<TerraformExtract>,
     terraformExtension: TerraformExtension,
     terraformInit: Task,
@@ -148,14 +145,23 @@ internal fun Project.elaborateSourceSet(
             metadata = sourceSet.metadata
         }
 
-    val terraformModuleZip = tasks.create<Zip>("terraform${taskName}Module") {
-        from(terraformModuleMetadata)
+    fun CopySpec.sourcesCopySpec(action: CopySpec.() -> Unit = {}) {
         from(sourceSet.getSourceDependencies().flatMap { it.srcDirs } + sourceSet.srcDirs) {
-            into("src/${sourceSet.metadata.group}/${sourceSet.metadata.moduleName}")
+            action()
             include { it.file.extension == "tf" || it.isDirectory }
         }
         from(sourceSet.getSourceDependencies().flatMap { it.resourcesDirs } + sourceSet.resourcesDirs) {
             into("resources")
+        }
+        from(lambdaConfiguration) {
+            into("resources")
+        }
+    }
+
+    val terraformModuleZip = tasks.create<Zip>("terraform${taskName}Module") {
+        from(terraformModuleMetadata)
+        sourcesCopySpec {
+            into("src/${sourceSet.metadata.group}/${sourceSet.metadata.moduleName}")
         }
         includeEmptyDirs = false
         exclude { it.file.endsWith(".terraform.lock.hcl") }
@@ -244,7 +250,7 @@ internal fun Project.elaborateSourceSet(
         }
 
     val copyExecutionContext = tasks.register<Sync>("generate${taskName}ExecutionContext") {
-        dependsOn(terraformRuntimeElements, terraformModuleZip, copyLambdas)
+        dependsOn(terraformRuntimeElements)
 
         fun sourcesSpec(toDrop: Int): Action<CopySpec> = Action {
             eachFile {
@@ -258,8 +264,8 @@ internal fun Project.elaborateSourceSet(
         }
 
         from(terraformRuntimeElements.resolve().map { zipTree(it) }, sourcesSpec(1))
-        from(zipTree(terraformModuleZip.archiveFile), sourcesSpec(3))
-
+        from(terraformModuleMetadata)
+        sourcesCopySpec()
         exclude { it.name == "metadata.json" }
         includeEmptyDirs = false
         from(sourceSet.lockFile)
@@ -275,7 +281,7 @@ internal fun Project.elaborateSourceSet(
 
     if (plugins.has<DistributionPlugin>()) {
         extensions.configure<DistributionContainer> {
-            maybeCreate(sourceSet.name).apply {
+            maybeRegister(sourceSet.name) {
                 contents {
                     from(copyExecutionContext)
                     from(terraformExtract) {
@@ -344,7 +350,7 @@ internal fun Project.elaborateSourceSet(
     terraformDestroyShow.dependsOn(tfDestroyShow)
     val tfDestroyPlan: TaskProvider<TerraformPlan> =
         tasks.terraformRegister("terraform${taskName}DestroyPlan", sourceSet) {
-            dependsOn(tfInit, copyLambdas)
+            dependsOn(tfInit)
             outputPlanFile = sourceSet.outputDestroyBinaryPlan
             isDestroy = true
             variables = sourceSet.planVariables

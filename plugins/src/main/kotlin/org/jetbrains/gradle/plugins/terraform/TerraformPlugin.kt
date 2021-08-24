@@ -4,8 +4,8 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.component.SoftwareComponentFactory
-import org.gradle.api.tasks.Sync
-import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.invoke
+import org.gradle.kotlin.dsl.register
 import org.jetbrains.gradle.plugins.component6
 import org.jetbrains.gradle.plugins.component7
 import org.jetbrains.gradle.plugins.terraform.tasks.TerraformExtract
@@ -19,7 +19,7 @@ open class TerraformPlugin @Inject constructor(
     object Attributes {
 
         const val USAGE = "terraform"
-        const val LIBRARY_ELEMENTS = "ZIP_ARCHIVE"
+        const val LIBRARY_ELEMENTS = "zip-archive"
 
         val SOURCE_SET_NAME_ATTRIBUTE: Attribute<String> = Attribute.of("terraform.sourceset.name", String::class.java)
     }
@@ -43,17 +43,13 @@ open class TerraformPlugin @Inject constructor(
             terraformPlan, terraformDestroyPlan, terraformApply,
             terraformDestroy) = registerLifecycleTasks()
 
-        main.resourcesDirs.add(terraformExtension.lambdasDirectory)
-
-        val copyLambdas by tasks.registering(Sync::class)
-
         val terraformExtract = tasks.register<TerraformExtract>(TERRAFORM_EXTRACT_TASK_NAME)
 
         elaborateSourceSet(
             main,
             terraformApi,
             terraformImplementation,
-            copyLambdas,
+            lambda,
             terraformExtract,
             terraformExtension,
             terraformInit,
@@ -74,17 +70,12 @@ open class TerraformPlugin @Inject constructor(
                 outputExecutable = File(buildDir, "terraform/$executableName")
             }
 
-            copyLambdas {
-                from(lambda)
-                into(terraformExtension.lambdasDirectory)
-            }
-
             sourceSets.filter { it != main }.forEach { sourceSet: TerraformSourceSet ->
                 elaborateSourceSet(
                     sourceSet,
                     terraformApi,
                     terraformImplementation,
-                    copyLambdas,
+                    lambda,
                     terraformExtract,
                     terraformExtension,
                     terraformInit,

@@ -5,14 +5,17 @@ package org.jetbrains.gradle.plugins
 import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Plugin
+import org.gradle.api.Task
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.SetProperty
+import org.gradle.api.tasks.TaskContainer
 import org.gradle.kotlin.dsl.invoke
 import org.gradle.kotlin.dsl.property
+import org.gradle.kotlin.dsl.register
 import java.io.File
 import java.io.OutputStream
 import kotlin.properties.ReadOnlyProperty
@@ -113,3 +116,9 @@ internal operator fun <T> List<T>.component7() = this[6]
 internal fun File.writeText(action: StringBuilder.() -> Unit) = writeText(buildString(action))
 
 internal fun StringBuilder.appendLine(text: String) = append(text + "\n")
+
+internal fun <T : Any> NamedDomainObjectContainer<T>.maybeRegister(name: String, action: T.() -> Unit) =
+    if (name in names) named(name).apply { configure(action) } else register(name, action)
+
+internal inline fun <reified T : Task> TaskContainer.maybeRegister(name: String, crossinline action: T.() -> Unit) =
+    if (name in names) named(name).apply { configure { action(this as T) } } else register<T>(name) { action() }
