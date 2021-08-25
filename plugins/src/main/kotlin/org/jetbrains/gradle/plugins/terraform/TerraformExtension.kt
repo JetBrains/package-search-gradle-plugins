@@ -1,12 +1,11 @@
 package org.jetbrains.gradle.plugins.terraform
 
 import org.gradle.api.Named
-import org.gradle.api.Project
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.specs.Spec
 import org.jetbrains.gradle.plugins.terraform.tasks.TerraformApply
 
-abstract class TerraformExtension(project: Project, private val name: String) : Named, ExtensionAware {
+abstract class TerraformExtension(private val name: String) : Named, ExtensionAware {
 
     /**
      * Version of Terraform to use. Default is `1.0.3`.

@@ -18,6 +18,7 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
+import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.TaskContainer
@@ -27,6 +28,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.gradle.plugins.*
 import org.jetbrains.gradle.plugins.terraform.tasks.*
+import java.io.File
 
 internal fun Project.setupTerraformRepository() {
     repositories {
@@ -100,7 +102,6 @@ internal fun Project.createConfigurations(): List<Configuration> {
 internal fun Project.createExtension(): Triple<TerraformExtension, NamedDomainObjectContainer<TerraformSourceSet>, TerraformSourceSet> {
     val terraformExtension = extensions.create<TerraformExtension>(
         TerraformPlugin.TERRAFORM_EXTENSION_NAME,
-        project,
         TerraformPlugin.TERRAFORM_EXTENSION_NAME
     )
 
@@ -326,19 +327,14 @@ internal fun Project.elaborateSourceSet(
     terraformPlan.dependsOn(tfPlan)
     tfShow { dependsOn(tfPlan) }
 
-    val tfApply: TaskProvider<TerraformApply> = tasks.terraformRegister("terraform${taskName}Apply", sourceSet) {
-        dependsOn(tfPlan)
-        planFile = sourceSet.outputBinaryPlan
-        onlyIf {
-            val canExecuteApply = terraformExtension.applySpec.isSatisfiedBy(this)
-            if (!canExecuteApply) logger.warn(
-                "Cannot execute $name. Please check " +
-                        "your terraform extension in the script."
-            )
-            canExecuteApply
-        }
-        sourceSet.tasksProvider.applyActions.executeAllOn(this)
-    }
+    val tfApply: TaskProvider<TerraformApply> = tasks.terraformRegisterApply(
+        "terraform${taskName}Apply",
+        sourceSet,
+        tfPlan,
+        terraformExtension.applySpec,
+        sourceSet.outputBinaryPlan,
+        sourceSet.tasksProvider.applyActions
+    )
     terraformApply.dependsOn(tfApply)
 
     val tfDestroyShow: TaskProvider<TerraformShow> =
@@ -362,18 +358,34 @@ internal fun Project.elaborateSourceSet(
     terraformDestroyPlan.dependsOn(tfDestroyPlan)
     tfDestroyShow { dependsOn(tfDestroyPlan) }
 
-    val tfDestroy: TaskProvider<TerraformApply> = tasks.terraformRegister("terraform${taskName}Destroy", sourceSet) {
-        dependsOn(tfDestroyPlan)
-        planFile = sourceSet.outputDestroyBinaryPlan
-        onlyIf {
-            val canExecuteApply = terraformExtension.destroySpec.isSatisfiedBy(this)
-            if (!canExecuteApply) logger.warn(
-                "Cannot execute $name. Please check " +
-                        "your terraform extension in the script."
-            )
-            canExecuteApply
-        }
-        sourceSet.tasksProvider.destroyActions.executeAllOn(this)
-    }
+    val tfDestroy: TaskProvider<TerraformApply> = tasks.terraformRegisterApply(
+        "terraform${taskName}Destroy",
+        sourceSet,
+        tfDestroyPlan,
+        terraformExtension.destroySpec,
+        sourceSet.outputDestroyBinaryPlan,
+        sourceSet.tasksProvider.destroyActions
+    )
     terraformDestroy.dependsOn(tfDestroy)
+}
+
+internal fun TaskContainer.terraformRegisterApply(
+    name: String,
+    sourceSet: TerraformSourceSet,
+    dependsOn: TaskProvider<out Task>,
+    spec: Spec<TerraformApply>,
+    binaryPlanFile: File,
+    configurations: List<Action<TerraformApply>>
+) = terraformRegister<TerraformApply>(name, sourceSet) {
+    dependsOn(dependsOn)
+    planFile = binaryPlanFile
+    onlyIf {
+        val canExecuteApply = spec.isSatisfiedBy(this)
+        if (!canExecuteApply) logger.warn(
+            "Cannot execute $name. Please check " +
+                    "your terraform extension in the script."
+        )
+        canExecuteApply
+    }
+    configurations.executeAllOn(this)
 }

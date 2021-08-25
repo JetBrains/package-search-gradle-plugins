@@ -16,7 +16,7 @@ import java.io.File
 
 open class TerraformSourceSet(private val project: Project, private val name: String) : Named {
 
-    internal val baseBuildDir
+    val baseBuildDir
         get() = "${project.buildDir}/terraform/$name"
 
     /**
