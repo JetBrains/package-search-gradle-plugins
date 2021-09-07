@@ -18,6 +18,7 @@ import org.gradle.kotlin.dsl.property
 import org.gradle.kotlin.dsl.register
 import java.io.File
 import java.io.OutputStream
+import kotlin.properties.Delegates
 import kotlin.properties.ReadOnlyProperty
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
@@ -122,3 +123,8 @@ internal fun <T : Any> NamedDomainObjectContainer<T>.maybeRegister(name: String,
 
 internal inline fun <reified T : Task> TaskContainer.maybeRegister(name: String, crossinline action: T.() -> Unit) =
     if (name in names) named(name).apply { configure { action(this as T) } } else register<T>(name) { action() }
+
+internal fun <T> Delegates.reference(initial: T) =
+    observable(initial) { _, _, _ -> }
+
+internal fun <T> Delegates.reference(initial: () -> T) = reference(initial())

@@ -3,7 +3,9 @@ package org.jetbrains.gradle.plugins.terraform
 import org.gradle.api.Named
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.specs.Spec
+import org.jetbrains.gradle.plugins.reference
 import org.jetbrains.gradle.plugins.terraform.tasks.TerraformApply
+import kotlin.properties.Delegates
 
 abstract class TerraformExtension(private val name: String) : Named, ExtensionAware {
 
@@ -15,36 +17,40 @@ abstract class TerraformExtension(private val name: String) : Named, ExtensionAw
     var showPlanOutputInConsole = true
     var showInitOutputInConsole = true
 
-    internal var applySpec = Spec<TerraformApply> {
-        it.logger.error(
-            """
-            Please specify a criteria with which execute terraform apply:
-            terraform {
-                executeApplyOnlyIf { System.getenv("CAN_EXECUTE_TF_APPLY") == "true" }
-            }
-            Or disable the check:
-            terraform {
-                executeApplyOnlyIf { true }
-            }
-        """.trimIndent()
-        )
-        false
+    internal var applySpec by Delegates.reference {
+        Spec<TerraformApply> {
+            it.logger.error(
+                """
+                    Please specify a criteria with which execute terraform apply:
+                    terraform {
+                        executeApplyOnlyIf { System.getenv("CAN_EXECUTE_TF_APPLY") == "true" }
+                    }
+                    Or disable the check:
+                    terraform {
+                        executeApplyOnlyIf { true }
+                    }
+                """.trimIndent()
+            )
+            false
+        }
     }
 
-    internal var destroySpec = Spec<TerraformApply> {
-        it.logger.error(
-            """
-            Please specify a criteria with which execute terraform destroy:
-            terraform {
-                executeDestroyOnlyIf { System.getenv("CAN_EXECUTE_TF_DESTROY") == "true" }
-            }
-            Or disable the check:
-            terraform {
-                executeDestroyOnlyIf { true }
-            }
-        """.trimIndent()
-        )
-        false
+    internal var destroySpec by Delegates.reference {
+        Spec<TerraformApply> {
+            it.logger.error(
+                """
+                    Please specify a criteria with which execute terraform destroy:
+                    terraform {
+                        executeDestroyOnlyIf { System.getenv("CAN_EXECUTE_TF_DESTROY") == "true" }
+                    }
+                    Or disable the check:
+                    terraform {
+                        executeDestroyOnlyIf { true }
+                    }
+                """.trimIndent()
+            )
+            false
+        }
     }
 
     /**
