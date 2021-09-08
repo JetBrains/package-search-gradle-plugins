@@ -2,8 +2,8 @@ plugins {
     `kotlin-dsl`
     `maven-publish`
     id("com.gradle.plugin-publish") version "0.15.0"
-    kotlin("plugin.serialization") version "1.5.21"
-    kotlin("jvm") version "1.5.21"
+    kotlin("plugin.serialization") version "1.5.30"
+    kotlin("jvm") version "1.5.30"
 }
 
 allprojects {
@@ -18,13 +18,13 @@ repositories {
 dependencies {
     api("com.github.docker-java:docker-java:3.2.11")
     api("com.github.docker-java:docker-java-transport-httpclient5:3.2.11")
-    api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.2")
+    api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.0-RC")
 }
 
 kotlin {
     sourceSets {
         all {
-            languageSettings.useExperimentalAnnotation("kotlin.ExperimentalStdlibApi")
+            languageSettings.optIn("kotlin.ExperimentalStdlibApi")
         }
     }
 }

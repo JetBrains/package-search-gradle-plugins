@@ -10,9 +10,9 @@ import kotlin.properties.Delegates
 abstract class TerraformExtension(private val name: String) : Named, ExtensionAware {
 
     /**
-     * Version of Terraform to use. Default is `1.0.3`.
+     * Version of Terraform to use. Default is `1.0.6`.
      */
-    var version = "1.0.3"
+    var version = "1.0.6"
 
     var showPlanOutputInConsole = true
     var showInitOutputInConsole = true

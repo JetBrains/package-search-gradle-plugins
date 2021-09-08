@@ -2,10 +2,11 @@ package org.jetbrains.gradle.plugins.terraform
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.attributes.Bundling
 import org.gradle.api.component.SoftwareComponentFactory
-import org.gradle.kotlin.dsl.invoke
-import org.gradle.kotlin.dsl.register
+import org.gradle.kotlin.dsl.*
 import org.jetbrains.gradle.plugins.component6
 import org.jetbrains.gradle.plugins.component7
 import org.jetbrains.gradle.plugins.terraform.tasks.TerraformExtract
@@ -29,15 +30,29 @@ open class TerraformPlugin @Inject constructor(
         const val TERRAFORM_EXTRACT_TASK_NAME = "terraformExtract"
         const val TERRAFORM_EXTENSION_NAME = "terraform"
         const val TASK_GROUP = "terraform"
+
     }
 
     override fun apply(target: Project): Unit = with(target) {
 
         setupTerraformRepository()
 
-        val (lambda, terraformImplementation, terraformApi) = createConfigurations()
+        val lambda: Configuration by configurations.creating {
+            isCanBeConsumed = false
+            isCanBeResolved = true
+            attributes {
+                attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.SHADOWED))
+            }
+        }
+        val terraformApi by configurations.creating {
+            isCanBeConsumed = true
+        }
+        val terraformImplementation by configurations.creating {
+            isCanBeConsumed = true
+            extendsFrom(terraformApi)
+        }
 
-        val (terraformExtension, sourceSets, main) = createExtension()
+        val (terraformExtension, sourceSets) = createExtension()
 
         val (terraformInit, terraformShow, terraformDestroyShow,
             terraformPlan, terraformDestroyPlan, terraformApply,
@@ -45,22 +60,24 @@ open class TerraformPlugin @Inject constructor(
 
         val terraformExtract = tasks.register<TerraformExtract>(TERRAFORM_EXTRACT_TASK_NAME)
 
-        elaborateSourceSet(
-            main,
-            terraformApi,
-            terraformImplementation,
-            lambda,
-            terraformExtract,
-            terraformExtension,
-            terraformInit,
-            terraformShow,
-            terraformPlan,
-            terraformApply,
-            terraformDestroyShow,
-            terraformDestroyPlan,
-            terraformDestroy,
-            softwareComponentFactory
-        )
+        sourceSets.all {
+            elaborateSourceSet(
+                this,
+                terraformApi,
+                terraformImplementation,
+                lambda,
+                terraformExtract,
+                terraformExtension,
+                terraformInit,
+                terraformShow,
+                terraformPlan,
+                terraformApply,
+                terraformDestroyShow,
+                terraformDestroyPlan,
+                terraformDestroy,
+                softwareComponentFactory
+            )
+        }
 
         afterEvaluate {
 
@@ -68,25 +85,6 @@ open class TerraformPlugin @Inject constructor(
                 configuration = generateTerraformDetachedConfiguration(terraformExtension.version)
                 val executableName = evaluateTerraformName(terraformExtension.version)
                 outputExecutable = File(buildDir, "terraform/$executableName")
-            }
-
-            sourceSets.filter { it != main }.forEach { sourceSet: TerraformSourceSet ->
-                elaborateSourceSet(
-                    sourceSet,
-                    terraformApi,
-                    terraformImplementation,
-                    lambda,
-                    terraformExtract,
-                    terraformExtension,
-                    terraformInit,
-                    terraformShow,
-                    terraformPlan,
-                    terraformApply,
-                    terraformDestroyShow,
-                    terraformDestroyPlan,
-                    terraformDestroy,
-                    softwareComponentFactory
-                )
             }
 
         }

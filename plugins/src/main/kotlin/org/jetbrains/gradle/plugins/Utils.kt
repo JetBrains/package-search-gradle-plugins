@@ -127,4 +127,4 @@ internal inline fun <reified T : Task> TaskContainer.maybeRegister(name: String,
 internal fun <T> Delegates.reference(initial: T) =
     observable(initial) { _, _, _ -> }
 
-internal fun <T> Delegates.reference(initial: () -> T) = reference(initial())
+internal inline fun <T> Delegates.reference(initial: () -> T) = reference(initial())
