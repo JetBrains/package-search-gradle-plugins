@@ -4,9 +4,11 @@ import org.gradle.api.Action
 import org.gradle.api.Named
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.Project
+import org.gradle.api.specs.Spec
 import org.gradle.kotlin.dsl.mapProperty
 import org.gradle.kotlin.dsl.provideDelegate
 import org.jetbrains.gradle.plugins.getValue
+import org.jetbrains.gradle.plugins.propertyWithDefault
 import org.jetbrains.gradle.plugins.setValue
 import org.jetbrains.gradle.plugins.terraform.tasks.TerraformApply
 import org.jetbrains.gradle.plugins.terraform.tasks.TerraformInit
@@ -18,6 +20,58 @@ open class TerraformSourceSet(private val project: Project, private val name: St
 
     val baseBuildDir
         get() = "${project.buildDir}/terraform/$name"
+
+    internal var applySpec = project.objects.propertyWithDefault(
+        Spec<TerraformApply> {
+            it.logger.error(
+                """
+                    Please specify a criteria with which execute terraform apply:
+                    terraform {
+                        executeApplyOnlyIf { System.getenv("CAN_EXECUTE_TF_APPLY") == "true" }
+                    }
+                    Or disable the check:
+                    terraform {
+                        executeApplyOnlyIf { true }
+                    }
+                """.trimIndent()
+            )
+            false
+        }
+    )
+
+    internal var destroySpec = project.objects.propertyWithDefault(
+        Spec<TerraformApply> {
+            it.logger.error(
+                """
+                    Please specify a criteria with which execute terraform destroy:
+                    terraform {
+                        executeDestroyOnlyIf { System.getenv("CAN_EXECUTE_TF_DESTROY") == "true" }
+                    }
+                    Or disable the check:
+                    terraform {
+                        executeDestroyOnlyIf { true }
+                    }
+                """.trimIndent()
+            )
+            false
+        }
+    )
+
+    /**
+     * Register the check to execute `terraform apply`. If `false`, `terraform apply` cannot be executed.
+     * It is meant to avoid accidental executions while experimenting with the plugin.
+     */
+    fun executeApplyOnlyIf(action: Spec<TerraformApply>) {
+        applySpec.set(action)
+    }
+
+    /**
+     * Register the check to execute `terraform destroy`. If `false`, `terraform destroy` cannot be executed.
+     * It is meant to avoid accidental executions while experimenting with the plugin.
+     */
+    fun executeDestroyOnlyIf(action: Spec<TerraformApply>) {
+        destroySpec.set(action)
+    }
 
     /**
      * The main directory in which Terraform will be executed.

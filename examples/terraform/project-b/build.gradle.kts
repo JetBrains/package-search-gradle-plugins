@@ -7,8 +7,6 @@ plugins {
 terraform {
     version = "1.0.4"
 
-    executeApplyOnlyIf { true }
-
     sourceSets {
         main {
             planVariables = mapOf("example" to "ciao")

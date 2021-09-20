@@ -187,7 +187,7 @@ internal fun Project.elaborateSourceSet(
         "terraform${taskName}Apply",
         sourceSet,
         tfPlan,
-        terraformExtension.applySpec,
+        sourceSet.applySpec,
         sourceSet.outputBinaryPlan,
         sourceSet.tasksProvider.applyActions
     )
@@ -218,7 +218,7 @@ internal fun Project.elaborateSourceSet(
         "terraform${taskName}Destroy",
         sourceSet,
         tfDestroyPlan,
-        terraformExtension.destroySpec,
+        sourceSet.destroySpec,
         sourceSet.outputDestroyBinaryPlan,
         sourceSet.tasksProvider.destroyActions
     )

@@ -8,6 +8,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.component.SoftwareComponentFactory
+import org.gradle.api.provider.Property
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.specs.Spec
@@ -73,13 +74,15 @@ internal fun Project.registerLifecycleTasks(): List<TaskProvider<Task>> {
 }
 
 internal fun Project.createExtension(): Pair<TerraformExtension, NamedDomainObjectContainer<TerraformSourceSet>> {
-    val terraformExtension = extensions.create<TerraformExtension>(
-        TerraformPlugin.TERRAFORM_EXTENSION_NAME,
-        TerraformPlugin.TERRAFORM_EXTENSION_NAME
-    )
 
     val sourceSets =
         container { name -> TerraformSourceSet(project, name.toCamelCase()) }
+
+    val terraformExtension = extensions.create<TerraformExtension>(
+        TerraformPlugin.TERRAFORM_EXTENSION_NAME,
+        TerraformPlugin.TERRAFORM_EXTENSION_NAME,
+        sourceSets
+    )
 
     terraformExtension.extensions.add("sourceSets", sourceSets)
 
@@ -152,14 +155,14 @@ internal fun TaskContainer.terraformRegisterApply(
     name: String,
     sourceSet: TerraformSourceSet,
     dependsOn: TaskProvider<out Task>,
-    spec: Spec<TerraformApply>,
+    spec: Property<Spec<TerraformApply>>,
     binaryPlanFile: File,
     configurations: List<Action<TerraformApply>>
 ) = terraformRegister<TerraformApply>(name, sourceSet) {
     dependsOn(dependsOn)
     planFile = binaryPlanFile
     onlyIf {
-        val canExecuteApply = spec.isSatisfiedBy(this)
+        val canExecuteApply = spec.get().isSatisfiedBy(this)
         if (!canExecuteApply) logger.warn(
             "Cannot execute $name. Please check " +
                     "your terraform extension in the script."
