@@ -4,17 +4,24 @@ import org.gradle.api.Action
 import org.gradle.api.Named
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.Project
+import org.gradle.api.provider.Provider
 import org.gradle.api.specs.Spec
+import org.gradle.api.tasks.TaskProvider
+import org.gradle.kotlin.dsl.invoke
 import org.gradle.kotlin.dsl.mapProperty
 import org.gradle.kotlin.dsl.provideDelegate
+import org.gradle.kotlin.dsl.register
 import org.jetbrains.gradle.plugins.getValue
 import org.jetbrains.gradle.plugins.propertyWithDefault
 import org.jetbrains.gradle.plugins.setValue
 import org.jetbrains.gradle.plugins.terraform.tasks.TerraformApply
 import org.jetbrains.gradle.plugins.terraform.tasks.TerraformInit
+import org.jetbrains.gradle.plugins.terraform.tasks.TerraformOutput
 import org.jetbrains.gradle.plugins.terraform.tasks.TerraformPlan
 import org.jetbrains.gradle.plugins.terraform.tasks.TerraformShow
+import org.jetbrains.gradle.plugins.toCamelCase
 import java.io.File
+import java.util.function.Supplier
 
 open class TerraformSourceSet(private val project: Project, private val name: String) : Named {
 
@@ -103,6 +110,8 @@ open class TerraformSourceSet(private val project: Project, private val name: St
     var dependsOn = setOf<TerraformSourceSet>()
         private set
 
+    internal val outputTasks = mutableListOf<TaskProvider<TerraformOutput>>()
+
     internal val tasksProvider = TasksProvider()
 
     fun dependsOn(sourceSet: TerraformSourceSet) {
@@ -120,11 +129,27 @@ open class TerraformSourceSet(private val project: Project, private val name: St
     /**
      * Variables used to execute `terraform plan` and `terraform destroy`.
      */
-    var planVariables by project.objects.mapProperty<String, String?>()
+    var planVariables by project.objects.mapProperty<String, () -> String?>()
+
+    fun planVariables(variables: Map<String, String?>) {
+        planVariables = variables.mapValues { { it.value } }.toMutableMap()
+    }
 
     fun planVariable(key: String, value: String) {
-        planVariables = planVariables.toMutableMap().apply { put(key, value) }.toMap()
+        planVariables = planVariables.toMutableMap().apply { put(key) { value } }.toMap()
     }
+
+    fun planVariable(key: String, value: Supplier<String>) {
+        planVariables = planVariables.toMutableMap().apply { put(key) { value.get() } }.toMap()
+    }
+
+    fun outputVariable(vararg names: String, action: Action<TerraformOutput> = Action {}) =
+        project.tasks.register<TerraformOutput>(
+            "terraform${name.toCamelCase().capitalize()}Output${names.joinToString("") { it.toCamelCase().capitalize() }}"
+        ) {
+            variables = names.toList()
+            action(this)
+        }.also { outputTasks.add(it) }
 
     /**
      * Adds the main directory in which Terraform will be executed.

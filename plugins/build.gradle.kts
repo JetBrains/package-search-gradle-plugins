@@ -29,6 +29,11 @@ kotlin {
     }
 }
 
+java {
+    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_1_8
+}
+
 pluginBundle {
     website = "https://github.com/JetBrains/jetbrains-gradle-plugins"
     vcsUrl = "https://github.com/JetBrains/jetbrains-gradle-plugins.git"

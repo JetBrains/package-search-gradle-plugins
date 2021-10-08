@@ -21,7 +21,7 @@ open class LiquibasePlugin : Plugin<Project> {
 
         const val LIQUIBASE_RUNTIME_CONFIGURATION_NAME = "liquibaseRuntime"
 
-        private val commandParams = listOf(
+        internal val commandParams = listOf(
             "excludeObjects",
             "includeObjects",
             "schemas",
@@ -74,26 +74,7 @@ open class LiquibasePlugin : Plugin<Project> {
         jvmArgs = activity.jvmArgs
         classpath(liquibaseConfiguration)
 
-        args = buildList {
-            activity.arguments.filterNot { it.key in commandParams }.map { "--${it.key}=${it.value}" }
-                .takeIf { it.isNotEmpty() }
-                ?.let { addAll(it) }
-            add(liquibaseCommand.command)
-            activity.arguments.filter { it.key in commandParams }.map { "--${it.key}=${it.value}" }
-                .takeIf { it.isNotEmpty() }
-                ?.let { addAll(it) }
-            activity.parameters.map { "-D${it.key}=${it.value}" }
-                .takeIf { it.isNotEmpty() }
-                ?.let { addAll(it) }
-            if (liquibaseCommand.requiresValue) {
-                val value: String? = when {
-                    properties.containsKey("liquibaseCommandValue") -> properties["liquibaseCommandValue"] as String
-                    liquibaseCommand == LiquibaseCommand.DB_DOC -> project.file("${project.buildDir}/database/docs").absolutePath
-                    else -> null
-                }
-                value?.let { add(it) }
-            }
-        }
+        args = activity.buildArgsCliFor(project, liquibaseCommand)
 
         if (liquibaseCommand.requiresValue)
             doFirst {
@@ -114,6 +95,27 @@ open class Activity(val name: String) {
         mutableMapOf<LiquibaseCommand, MutableList<Action<JavaExec>>>()
             .withDefault { mutableListOf() }
 
+    fun buildArgsCliFor(project: Project, command: LiquibaseCommand) = buildList {
+        arguments.filterNot { it.key in LiquibasePlugin.commandParams }.map { "--${it.key}=${it.value}" }
+            .takeIf { it.isNotEmpty() }
+            ?.let { this.addAll(it) }
+        this.add(command.command)
+        arguments.filter { it.key in LiquibasePlugin.commandParams }.map { "--${it.key}=${it.value}" }
+            .takeIf { it.isNotEmpty() }
+            ?.let { this.addAll(it) }
+        parameters.map { "-D${it.key}=${it.value}" }
+            .takeIf { it.isNotEmpty() }
+            ?.let { this.addAll(it) }
+        if (command.requiresValue) {
+            val value: String? = when {
+                project.properties.containsKey("liquibaseCommandValue") -> project.properties["liquibaseCommandValue"] as String
+                command == LiquibaseCommand.DB_DOC -> project.project.file("${project.project.buildDir}/database/docs").absolutePath
+                else -> null
+            }
+            value?.let { this.add(it) }
+        }
+    }
+
     /**
      * Configures an [Action] that will be invoked against the task for
      * the given [command] for this Activity.
@@ -126,8 +128,8 @@ open class Activity(val name: String) {
      * Configures an [Action] that will be invoked against all tasks for
      * this Activity.
      */
-    fun onEachCommand(action: Action<JavaExec>) {
-        LiquibaseCommand.values().forEach { onCommand(it, action) }
+    fun onEachCommand(action: JavaExec.(LiquibaseCommand) -> Unit) {
+        LiquibaseCommand.values().forEach { onCommand(it) { action(it) } }
     }
 
     /**

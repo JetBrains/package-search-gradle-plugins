@@ -47,17 +47,19 @@ abstract class AbstractTerraformExec : DefaultTask() {
     protected open fun ExecSpec.customizeExec() {}
 
     @TaskAction
-    private fun execute(): ExecResult = project.exec {
-        val terraformExecutable = project.tasks
-            .named<TerraformExtract>(TerraformPlugin.TERRAFORM_EXTRACT_TASK_NAME)
-            .get().outputExecutable
-        executable = terraformExecutable.absolutePath
-        workingDir = sourcesDirectory
-        args = getTerraformArguments()
-        environment = buildMap<String, String> {
-            putAll(System.getenv())
-            put("TF_DATA_DIR", dataDir.absolutePath)
+    private fun execute() {
+        project.exec {
+            val terraformExecutable = project.tasks
+                .named<TerraformExtract>(TerraformPlugin.TERRAFORM_EXTRACT_TASK_NAME)
+                .get().outputExecutable
+            executable = terraformExecutable.absolutePath
+            workingDir = sourcesDirectory
+            args = getTerraformArguments()
+            environment = buildMap<String, String> {
+                putAll(System.getenv())
+                put("TF_DATA_DIR", dataDir.absolutePath)
+            }
+            customizeExec()
         }
-        customizeExec()
     }
 }

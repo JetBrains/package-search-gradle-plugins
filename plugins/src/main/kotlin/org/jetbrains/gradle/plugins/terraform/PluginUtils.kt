@@ -91,13 +91,17 @@ internal fun Project.createExtension(): Pair<TerraformExtension, NamedDomainObje
     return terraformExtension to sourceSets
 }
 
+internal fun AbstractTerraformExec.attachSourceSet(sourceSet: TerraformSourceSet) {
+    sourcesDirectory = sourceSet.runtimeExecutionDirectory
+    dataDir = sourceSet.dataDir
+}
+
 internal inline fun <reified T : AbstractTerraformExec> TaskContainer.terraformRegister(
     name: String,
     sourceSet: TerraformSourceSet,
     crossinline action: T.() -> Unit
 ) = register<T>(name) {
-    sourcesDirectory = sourceSet.runtimeExecutionDirectory
-    dataDir = sourceSet.dataDir
+    attachSourceSet(sourceSet)
     action()
 }
 

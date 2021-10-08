@@ -17,10 +17,22 @@ import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.configure
+import org.gradle.kotlin.dsl.create
+import org.gradle.kotlin.dsl.invoke
+import org.gradle.kotlin.dsl.named
+import org.gradle.kotlin.dsl.register
 import org.jetbrains.gradle.plugins.executeAllOn
 import org.jetbrains.gradle.plugins.maybeRegister
-import org.jetbrains.gradle.plugins.terraform.tasks.*
+import org.jetbrains.gradle.plugins.terraform.tasks.CopyTerraformResourceFileInModules
+import org.jetbrains.gradle.plugins.terraform.tasks.GenerateResourcesTerraformFile
+import org.jetbrains.gradle.plugins.terraform.tasks.GenerateTerraformMetadata
+import org.jetbrains.gradle.plugins.terraform.tasks.TerraformApply
+import org.jetbrains.gradle.plugins.terraform.tasks.TerraformExtract
+import org.jetbrains.gradle.plugins.terraform.tasks.TerraformInit
+import org.jetbrains.gradle.plugins.terraform.tasks.TerraformOutput
+import org.jetbrains.gradle.plugins.terraform.tasks.TerraformPlan
+import org.jetbrains.gradle.plugins.terraform.tasks.TerraformShow
 import org.jetbrains.gradle.plugins.toCamelCase
 
 internal fun Project.elaborateSourceSet(
@@ -110,6 +122,7 @@ internal fun Project.elaborateSourceSet(
         dependsOn(terraformRuntimeElements)
 
         fun sourcesSpec(toDrop: Int): Action<CopySpec> = Action {
+
             eachFile {
                 if (relativePath.segments.first() == "src") {
                     relativePath = RelativePath(
@@ -192,6 +205,19 @@ internal fun Project.elaborateSourceSet(
         sourceSet.tasksProvider.applyActions
     )
     terraformApply { dependsOn(tfApply) }
+
+    sourceSet.outputTasks.forEach { task ->
+        task.configure {
+            dependsOn(tfInit)
+            attachSourceSet(sourceSet)
+            val fileName = variables.joinToString("") { it.toCamelCase().capitalize() }.decapitalize()
+            val extension = when (format) {
+                TerraformOutput.Format.JSON -> ".json"
+                TerraformOutput.Format.RAW -> ".txt"
+            }
+            outputFile = file("${sourceSet.baseBuildDir}/outputs/$fileName.$extension")
+        }
+    }
 
     val tfDestroyShow: TaskProvider<TerraformShow> =
         tasks.terraformRegister("terraform${taskName}DestroyShow", sourceSet) {
