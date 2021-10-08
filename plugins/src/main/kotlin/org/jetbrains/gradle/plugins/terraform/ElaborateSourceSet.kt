@@ -221,7 +221,7 @@ internal fun Project.elaborateSourceSet(
 
     val tfDestroyShow: TaskProvider<TerraformShow> =
         tasks.terraformRegister("terraform${taskName}DestroyShow", sourceSet) {
-            inputPlanFile = sourceSet.runtimeExecutionDirectory
+            inputPlanFile = sourceSet.outputBinaryPlan
             outputJsonPlanFile = sourceSet.outputDestroyJsonPlan
             sourceSet.tasksProvider.destroyShowActions.executeAllOn(this)
         }
