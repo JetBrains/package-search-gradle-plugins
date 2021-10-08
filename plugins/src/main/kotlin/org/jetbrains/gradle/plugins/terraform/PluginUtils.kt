@@ -86,7 +86,7 @@ internal fun Project.createExtension(): Pair<TerraformExtension, NamedDomainObje
 
     terraformExtension.extensions.add("sourceSets", sourceSets)
 
-    sourceSets.create("main")
+    sourceSets.create("main").apply { addLambdasToResources = true }
 
     return terraformExtension to sourceSets
 }

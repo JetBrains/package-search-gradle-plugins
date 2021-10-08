@@ -64,6 +64,8 @@ open class TerraformSourceSet(private val project: Project, private val name: St
         }
     )
 
+    var addLambdasToResources = false
+
     /**
      * Register the check to execute `terraform apply`. If `false`, `terraform apply` cannot be executed.
      * It is meant to avoid accidental executions while experimenting with the plugin.

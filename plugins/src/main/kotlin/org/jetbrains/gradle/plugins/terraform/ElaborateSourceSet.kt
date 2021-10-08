@@ -66,7 +66,7 @@ internal fun Project.elaborateSourceSet(
         from(sourceSet.getSourceDependencies().flatMap { it.resourcesDirs } + sourceSet.resourcesDirs) {
             into("resources")
         }
-        from(lambdaConfiguration) {
+        if (sourceSet.addLambdasToResources) from(lambdaConfiguration) {
             into("resources")
         }
     }
