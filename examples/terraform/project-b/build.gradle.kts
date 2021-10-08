@@ -9,7 +9,7 @@ terraform {
 
     sourceSets {
         main {
-            planVariables = mapOf("example" to { "ciao" })
+            planVariables = mapOf("example" to provider { "ciao" })
             metadata {
                 group = "org.example"
                 moduleName = "example-b"

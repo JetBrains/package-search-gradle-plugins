@@ -1,5 +1,6 @@
 package org.jetbrains.gradle.plugins.terraform.tasks
 
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.*
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.gradle.plugins.*
@@ -11,7 +12,7 @@ open class TerraformPlan : AbstractTerraformExec() {
     var isDestroy by project.objects.propertyWithDefault(false)
 
     @get:Input
-    var variables by project.objects.mapProperty<String, () -> String?>()
+    var variables by project.objects.mapProperty<String, Provider<String?>>()
 
     @get:InputFile
     @get:Optional
@@ -42,7 +43,7 @@ open class TerraformPlan : AbstractTerraformExec() {
         add("plan")
         add("-input=false")
         for ((k, v) in variables) {
-            addAll("-var", "$k=${v()}")
+            addAll("-var", "$k=${v.orNull}")
         }
         variablesFile?.run { add("-var-file=$absolutePath") }
         refresh?.let { add("-refresh=$it") }

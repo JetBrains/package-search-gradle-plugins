@@ -183,7 +183,7 @@ internal fun Project.elaborateSourceSet(
         outputJsonPlanFile = sourceSet.outputJsonPlan
         sourceSet.tasksProvider.showActions.executeAllOn(this)
     }
-    terraformShow { dependsOn(terraformShow) }
+    terraformShow { dependsOn(tfShow) }
     val tfPlan: TaskProvider<TerraformPlan> = tasks.terraformRegister("terraform${taskName}Plan", sourceSet) {
         dependsOn(tfInit)
         outputPlanFile = sourceSet.outputBinaryPlan
