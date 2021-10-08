@@ -6,3 +6,4 @@ out/
 local.properties
 examples/terraform/src/main/terraform/.terraform/
 examples/terraform/src/main/terraform/.terraform.lock.hcl
+.terraform.lock.hcl

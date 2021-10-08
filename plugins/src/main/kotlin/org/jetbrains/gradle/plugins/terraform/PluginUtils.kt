@@ -96,15 +96,6 @@ internal fun AbstractTerraformExec.attachSourceSet(sourceSet: TerraformSourceSet
     dataDir = sourceSet.dataDir
 }
 
-internal inline fun <reified T : AbstractTerraformExec> TaskContainer.terraformRegister(
-    name: String,
-    sourceSet: TerraformSourceSet,
-    crossinline action: T.() -> Unit
-) = register<T>(name) {
-    attachSourceSet(sourceSet)
-    action()
-}
-
 internal fun Project.createComponent(
     taskName: String,
     terraformApi: Configuration,
@@ -155,14 +146,12 @@ internal fun Project.createComponent(
     }
 }
 
-internal fun TaskContainer.terraformRegisterApply(
-    name: String,
-    sourceSet: TerraformSourceSet,
+internal fun TerraformApply.configureApply(
     dependsOn: TaskProvider<out Task>,
     spec: Property<Spec<TerraformApply>>,
     binaryPlanFile: File,
     configurations: List<Action<TerraformApply>>
-) = terraformRegister<TerraformApply>(name, sourceSet) {
+) {
     dependsOn(dependsOn)
     planFile = binaryPlanFile
     onlyIf {
@@ -175,3 +164,6 @@ internal fun TaskContainer.terraformRegisterApply(
     }
     configurations.executeAllOn(this)
 }
+
+internal fun <T : Task> Collection<TaskProvider<T>>.configureEach(action: T.() -> Unit) =
+    forEach { it { action() } }

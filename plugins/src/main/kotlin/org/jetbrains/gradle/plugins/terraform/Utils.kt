@@ -4,6 +4,8 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.internal.os.OperatingSystem
+import java.io.Serializable
+import java.util.function.Supplier
 
 internal fun evaluateTerraformName(version: String) =
     "terraform_$version" + when {
@@ -48,3 +50,5 @@ internal fun TerraformSourceSet.getSourceDependencies(): Set<TerraformSourceSet>
 }
 
 internal operator fun <T : Task> T.invoke(action: T.() -> Unit) = action(this)
+
+fun interface SerializableSupplier<T> : Supplier<T>, Serializable

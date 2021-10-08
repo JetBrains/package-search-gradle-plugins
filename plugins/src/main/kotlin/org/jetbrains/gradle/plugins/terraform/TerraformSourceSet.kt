@@ -131,19 +131,21 @@ open class TerraformSourceSet(private val project: Project, private val name: St
     /**
      * Variables used to execute `terraform plan` and `terraform destroy`.
      */
-    var planVariables by project.objects.mapProperty<String, Provider<String?>>()
+    var planVariables by project.objects.mapProperty<String, SerializableSupplier<String?>>()
+
+    fun planVariables(vararg variables: Pair<String, String>) = planVariables(variables.toMap())
 
     fun planVariables(variables: Map<String, String?>) {
-        planVariables = variables.mapValues { project.provider { it.value } }.toMutableMap()
+        planVariables = variables.mapValues { SerializableSupplier { it.value } }.toMutableMap()
     }
 
-    fun planVariable(key: String, value: Provider<String?>) {
+    fun planVariable(key: String, value: Provider<String?>) = planVariable(key) { value.orNull }
+
+    fun planVariable(key: String, value: String) = planVariable(key) { value }
+
+    fun planVariable(key: String, value: SerializableSupplier<String?>) {
         planVariables = planVariables.toMutableMap().apply { put(key, value) }.toMap()
     }
-
-    fun planVariable(key: String, value: String) = planVariable(key, project.provider { value })
-
-    fun planVariable(key: String, value: Supplier<String>) = planVariable(key, project.provider { value.get() })
 
     fun outputVariable(vararg names: String, action: Action<TerraformOutput> = Action {}) =
         project.tasks.register<TerraformOutput>(

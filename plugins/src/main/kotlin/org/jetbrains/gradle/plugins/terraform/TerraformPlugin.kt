@@ -61,22 +61,24 @@ open class TerraformPlugin @Inject constructor(
         val terraformExtract = tasks.register<TerraformExtract>(TERRAFORM_EXTRACT_TASK_NAME)
 
         sourceSets.all {
-            elaborateSourceSet(
-                this,
-                terraformApi,
-                terraformImplementation,
-                lambda,
-                terraformExtract,
-                terraformExtension,
-                terraformInit,
-                terraformShow,
-                terraformPlan,
-                terraformApply,
-                terraformDestroyShow,
-                terraformDestroyPlan,
-                terraformDestroy,
-                softwareComponentFactory
+            val tasksToConfigure = TFTaskContainer(
+                project = project,
+                sourceSet = this,
+                terraformApi = terraformApi,
+                terraformImplementation = terraformImplementation,
+                lambdaConfiguration = lambda,
+                terraformExtract = terraformExtract,
+                terraformExtension = terraformExtension,
+                terraformInit = terraformInit,
+                terraformShow = terraformShow,
+                terraformPlan = terraformPlan,
+                terraformApply = terraformApply,
+                terraformDestroyShow = terraformDestroyShow,
+                terraformDestroyPlan = terraformDestroyPlan,
+                terraformDestroy = terraformDestroy,
+                softwareComponentFactory = softwareComponentFactory
             )
+            afterEvaluate { tasksToConfigure.configureTasksForSourceSet() }
         }
 
         afterEvaluate {
