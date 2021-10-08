@@ -34,7 +34,7 @@ open class TerraformOutput : AbstractTerraformExec() {
 
     init {
         @Suppress("LeakingThis")
-        doLast { outputFile.writeText(stdOutStream.toString(Charsets.UTF_8)) }
+        doLast { outputFile.writeText(stdOutStream.toByteArray().toString(Charsets.UTF_8)) }
     }
 
     override fun ExecSpec.customizeExec() {
