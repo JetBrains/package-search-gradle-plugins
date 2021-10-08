@@ -12,7 +12,7 @@ open class TerraformPlan : AbstractTerraformExec() {
     var isDestroy by project.objects.propertyWithDefault(false)
 
     @get:Input
-    var variables by project.objects.mapProperty<String, Provider<String?>>()
+    var variables by project.objects.mapProperty<String, String?>()
 
     @get:InputFile
     @get:Optional
@@ -43,7 +43,7 @@ open class TerraformPlan : AbstractTerraformExec() {
         add("plan")
         add("-input=false")
         for ((k, v) in variables) {
-            addAll("-var", "$k=${v.orNull}")
+            addAll("-var", "$k=$v")
         }
         variablesFile?.run { add("-var-file=$absolutePath") }
         refresh?.let { add("-refresh=$it") }

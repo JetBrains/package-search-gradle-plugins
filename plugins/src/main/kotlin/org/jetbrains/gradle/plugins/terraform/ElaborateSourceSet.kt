@@ -187,7 +187,7 @@ internal fun Project.elaborateSourceSet(
     val tfPlan: TaskProvider<TerraformPlan> = tasks.terraformRegister("terraform${taskName}Plan", sourceSet) {
         dependsOn(tfInit)
         outputPlanFile = sourceSet.outputBinaryPlan
-        variables = sourceSet.planVariables
+        variables = sourceSet.planVariables.mapValues { it.value.orNull }
         finalizedBy(tfShow)
         sourceSet.tasksProvider.planActions.executeAllOn(this)
         if (terraformExtension.showPlanOutputInConsole)
@@ -231,7 +231,7 @@ internal fun Project.elaborateSourceSet(
             dependsOn(tfInit)
             outputPlanFile = sourceSet.outputDestroyBinaryPlan
             isDestroy = true
-            variables = sourceSet.planVariables
+            variables = sourceSet.planVariables.mapValues { it.value.orNull }
             finalizedBy(tfDestroyShow)
             sourceSet.tasksProvider.destroyPlanActions.executeAllOn(this)
             if (terraformExtension.showPlanOutputInConsole)
