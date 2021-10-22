@@ -13,7 +13,7 @@ jobs:
           distribution: 'adopt'
           java-version: 8
       - name: Run Gradle
-        uses: gradle/gradle-build-action@v1
+        uses: gradle/gradle-build-action@v2
         id: publish
         env:
           GRADLE_PUBLISH_KEY: ${{secrets.GRADLE_PUBLISH_KEY}}

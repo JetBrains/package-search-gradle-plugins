@@ -18,7 +18,7 @@ jobs:
 
       # Docker tests
       - name: Docker CLI test
-        uses: gradle/gradle-build-action@v1
+        uses: gradle/gradle-build-action@v2
         id: docker-cli
         env:
           CONTAINER_REGISTRY_IMAGE_PREFIX: ${{secrets.CONTAINER_REGISTRY_IMAGE_PREFIX}}
@@ -34,7 +34,7 @@ jobs:
         if: ${{ always() }}
 
       - name: Docker REST API test
-        uses: gradle/gradle-build-action@v1
+        uses: gradle/gradle-build-action@v2
         id: docker-rest
         if: matrix.os != 'windows-latest'
         env:
@@ -53,7 +53,7 @@ jobs:
 
       # liquibase tests
       - name: Liquibase test
-        uses: gradle/gradle-build-action@v1
+        uses: gradle/gradle-build-action@v2
         id: liquibase
         if: ${{ always() }}
         with:
@@ -66,7 +66,7 @@ jobs:
 
       # terraform tests
       - name: Terraform test
-        uses: gradle/gradle-build-action@v1
+        uses: gradle/gradle-build-action@v2
         if: ${{ always() }}
         id: terraform
         with:
