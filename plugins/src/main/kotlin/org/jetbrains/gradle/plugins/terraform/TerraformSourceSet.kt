@@ -14,14 +14,9 @@ import org.gradle.kotlin.dsl.register
 import org.jetbrains.gradle.plugins.getValue
 import org.jetbrains.gradle.plugins.propertyWithDefault
 import org.jetbrains.gradle.plugins.setValue
-import org.jetbrains.gradle.plugins.terraform.tasks.TerraformApply
-import org.jetbrains.gradle.plugins.terraform.tasks.TerraformInit
-import org.jetbrains.gradle.plugins.terraform.tasks.TerraformOutput
-import org.jetbrains.gradle.plugins.terraform.tasks.TerraformPlan
-import org.jetbrains.gradle.plugins.terraform.tasks.TerraformShow
+import org.jetbrains.gradle.plugins.terraform.tasks.*
 import org.jetbrains.gradle.plugins.toCamelCase
 import java.io.File
-import java.util.function.Supplier
 
 open class TerraformSourceSet(private val project: Project, private val name: String) : Named {
 
@@ -94,10 +89,14 @@ open class TerraformSourceSet(private val project: Project, private val name: St
 
     var lockFile: File = project.file("src/$name/terraform/.terraform.lock.hcl")
 
-    var metadata = TerraformModuleMetadata(project.group.toString(), buildString {
-        append(project.name)
-        if (name != "main") append("-$name")
-    })
+    var metadata = TerraformModuleMetadata(
+        group = project.group.toString(),
+        moduleName = buildString {
+            append(project.name)
+            if (name != "main") append("-$name")
+        },
+        version = project.version.toString()
+    )
 
     fun metadata(action: Action<TerraformModuleMetadata>) {
         action.execute(metadata)

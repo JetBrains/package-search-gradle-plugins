@@ -1,6 +1,5 @@
 package org.jetbrains.gradle.plugins.terraform
 
-import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
@@ -23,7 +22,7 @@ import org.jetbrains.gradle.plugins.maybeRegister
 import org.jetbrains.gradle.plugins.terraform.tasks.*
 import org.jetbrains.gradle.plugins.toCamelCase
 
-internal class TFTaskContainer private constructor(
+internal class TerraformTasksContainer private constructor(
     private val taskName: String,
     private val terraformModuleMetadata: TaskProvider<GenerateTerraformMetadata>,
     private val terraformModuleZip: Zip,
@@ -62,7 +61,7 @@ internal class TFTaskContainer private constructor(
             terraformDestroyPlan: TaskProvider<Task>,
             terraformDestroy: TaskProvider<Task>,
             softwareComponentFactory: SoftwareComponentFactory
-        ): TFTaskContainer = with(project) {
+        ): TerraformTasksContainer = with(project) {
             val taskName = sourceSet.name.capitalize()
             val terraformModuleMetadata =
                 tasks.register<GenerateTerraformMetadata>("terraform${taskName}Metadata")
@@ -70,7 +69,7 @@ internal class TFTaskContainer private constructor(
             val terraformModuleZip = tasks.create<Zip>("terraform${taskName}Module")
 
             if (sourceSet.name == "main")
-                createComponent(taskName, terraformApi, terraformModuleZip, sourceSet, softwareComponentFactory)
+                createComponent(terraformApi, terraformModuleZip, softwareComponentFactory, terraformExtension)
 
             val copyResFiles =
                 tasks.register<CopyTerraformResourceFileInModules>("copy${taskName}ResFileInExecutionContext")
@@ -128,7 +127,7 @@ internal class TFTaskContainer private constructor(
             val tfDestroy: TaskProvider<TerraformApply> = tasks.register<TerraformApply>("terraform${taskName}Destroy")
             terraformDestroy { dependsOn(tfDestroy) }
 
-            return TFTaskContainer(
+            return TerraformTasksContainer(
                 taskName, terraformModuleMetadata, terraformModuleZip, copyResFiles, createResFile,
                 copyExecutionContext, syncLockFile, tfInit, tfShow, tfPlan, tfApply, tfDestroyShow,
                 tfDestroyPlan, tfDestroy, terraformImplementation, lambdaConfiguration,
@@ -137,7 +136,7 @@ internal class TFTaskContainer private constructor(
         }
     }
 
-    fun configureTasksForSourceSet() = with(project) {
+    fun configure() = with(project) {
         terraformModuleMetadata {
             outputFile = file("${sourceSet.baseBuildDir}/tmp/metadata.json")
             metadata = sourceSet.metadata
@@ -201,19 +200,16 @@ internal class TFTaskContainer private constructor(
         copyExecutionContext {
             dependsOn(terraformRuntimeElements)
 
-            fun sourcesSpec(toDrop: Int): Action<CopySpec> = Action {
-
+            from(terraformRuntimeElements.resolve().map { zipTree(it) }) {
                 eachFile {
                     if (relativePath.segments.first() == "src") {
                         relativePath = RelativePath(
                             true,
-                            *relativePath.segments.drop(toDrop).toTypedArray()
+                            *relativePath.segments.drop(1).toTypedArray()
                         )
                     }
                 }
             }
-
-            from(terraformRuntimeElements.resolve().map { zipTree(it) }, sourcesSpec(1))
             from(terraformModuleMetadata)
             sourcesCopySpec()
             exclude { it.name == "metadata.json" }

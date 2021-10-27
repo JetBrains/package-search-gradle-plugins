@@ -20,7 +20,7 @@ open class TerraformPlugin @Inject constructor(
     object Attributes {
 
         const val USAGE = "terraform"
-        const val LIBRARY_ELEMENTS = "zip-archive"
+        const val LIBRARY_ELEMENTS = "tf-zip-archive"
 
         val SOURCE_SET_NAME_ATTRIBUTE: Attribute<String> = Attribute.of("terraform.sourceset.name", String::class.java)
     }
@@ -61,7 +61,7 @@ open class TerraformPlugin @Inject constructor(
         val terraformExtract = tasks.register<TerraformExtract>(TERRAFORM_EXTRACT_TASK_NAME)
 
         sourceSets.all {
-            val tasksToConfigure = TFTaskContainer(
+            val tasksToConfigure = TerraformTasksContainer(
                 project = project,
                 sourceSet = this,
                 terraformApi = terraformApi,
@@ -78,7 +78,7 @@ open class TerraformPlugin @Inject constructor(
                 terraformDestroy = terraformDestroy,
                 softwareComponentFactory = softwareComponentFactory
             )
-            afterEvaluate { tasksToConfigure.configureTasksForSourceSet() }
+            afterEvaluate { tasksToConfigure.configure() }
         }
 
         afterEvaluate {

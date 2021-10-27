@@ -12,7 +12,6 @@ import org.gradle.api.provider.Property
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.specs.Spec
-import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.kotlin.dsl.*
@@ -97,14 +96,13 @@ internal fun AbstractTerraformExec.attachSourceSet(sourceSet: TerraformSourceSet
 }
 
 internal fun Project.createComponent(
-    taskName: String,
     terraformApi: Configuration,
     terraformModuleZip: Zip,
-    sourceSet: TerraformSourceSet,
-    softwareComponentFactory: SoftwareComponentFactory
+    softwareComponentFactory: SoftwareComponentFactory,
+    terraformExtension: TerraformExtension
 ) {
     val terraformOutgoingElements =
-        configurations.create("terraform${taskName}OutgoingElements") {
+        configurations.create("terraformOutgoingElements") {
             isCanBeConsumed = true
             extendsFrom(terraformApi)
             outgoing.artifact(terraformModuleZip)
@@ -117,10 +115,7 @@ internal fun Project.createComponent(
             }
         }
 
-    val component = softwareComponentFactory.adhoc(buildString {
-        append("terraform")
-        if (sourceSet.name != "main") append(taskName)
-    })
+    val component = softwareComponentFactory.adhoc("terraform")
 
     components.add(component)
 
@@ -131,15 +126,12 @@ internal fun Project.createComponent(
     plugins.withId("org.gradle.maven-publish") {
         configure<PublishingExtension> {
             publications {
-                create<MavenPublication>("terraform$taskName") {
+                create<MavenPublication>("terraform") {
                     groupId = project.group.toString()
-                    artifactId = buildString {
-                        append(project.name)
-                        if (sourceSet.name != "main") append("-${sourceSet.name}")
-                    }
+                    artifactId = project.name
                     version = project.version.toString()
-
                     from(component)
+                    afterEvaluate { terraformExtension.mavenPublicationActions.executeAllOn(this@create) }
                 }
             }
         }

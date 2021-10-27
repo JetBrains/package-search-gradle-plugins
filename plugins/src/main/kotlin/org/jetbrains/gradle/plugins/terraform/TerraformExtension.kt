@@ -1,20 +1,19 @@
 package org.jetbrains.gradle.plugins.terraform
 
+import org.gradle.api.Action
 import org.gradle.api.Named
 import org.gradle.api.NamedDomainObjectContainer
-import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionAware
-import org.gradle.api.provider.Property
+import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.specs.Spec
-import org.jetbrains.gradle.plugins.propertyWithDefault
-import org.jetbrains.gradle.plugins.reference
 import org.jetbrains.gradle.plugins.terraform.tasks.TerraformApply
-import kotlin.properties.Delegates
 
 abstract class TerraformExtension(
     private val name: String,
     private val sourceSets: NamedDomainObjectContainer<TerraformSourceSet>
 ) : Named, ExtensionAware {
+
+    internal val mavenPublicationActions = mutableListOf<Action<MavenPublication>>()
 
     /**
      * Version of Terraform to use. Default is `1.0.6`.
@@ -46,6 +45,10 @@ abstract class TerraformExtension(
     )
     fun executeDestroyOnlyIf(action: Spec<TerraformApply>) {
         sourceSets.all { executeDestroyOnlyIf(action) }
+    }
+
+    fun mavenPublication(action: Action<MavenPublication>) {
+        mavenPublicationActions.add(action)
     }
 
     override fun getName() =
