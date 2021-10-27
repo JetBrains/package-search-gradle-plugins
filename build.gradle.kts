@@ -30,6 +30,13 @@ dependencies {
 }
 
 kotlin {
+    target {
+        compilations.all {
+            kotlinOptions {
+                languageVersion = "1.5"
+            }
+        }
+    }
     sourceSets {
         all {
             languageSettings.optIn("kotlin.ExperimentalStdlibApi")
