@@ -11,18 +11,28 @@ application {
 }
 
 dependencies {
-    implementation("io.ktor:ktor-server-cio:1.6.1")
-    implementation("ch.qos.logback:logback-classic:1.2.5")
-    testImplementation("io.ktor:ktor-server-test-host:1.6.1")
+
+    val properties = rootProject.file("../gradle.properties")
+        .readLines()
+        .filter { it.isNotEmpty() && '=' in it }
+        .map { it.split("=") }
+        .associate { it[0] to it[1] }
+
+    val ktorVersion by properties
+    val logbackVersion by properties
+    val junitVersion by properties
+
+    implementation("io.ktor:ktor-server-cio:$ktorVersion")
+    implementation("ch.qos.logback:logback-classic:$logbackVersion")
+    testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     testImplementation(kotlin("test-junit5"))
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.2")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
 }
 
 tasks {
     test {
         useJUnitPlatform()
     }
-
 }
 
 docker {

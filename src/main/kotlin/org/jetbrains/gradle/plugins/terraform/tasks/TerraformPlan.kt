@@ -1,6 +1,5 @@
 package org.jetbrains.gradle.plugins.terraform.tasks
 
-import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.*
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.gradle.plugins.*

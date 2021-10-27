@@ -37,5 +37,5 @@ publishing {
 }
 
 dependencies {
-    terraformApi(project(":examples:terraform:project-a"))
+    //terraformApi(project(":examples:terraform:project-a"))
 }

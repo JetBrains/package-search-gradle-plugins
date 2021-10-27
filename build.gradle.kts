@@ -1,5 +1,13 @@
 import java.util.*
 
+plugins {
+    `kotlin-dsl`
+    `maven-publish`
+    id("com.gradle.plugin-publish")
+    kotlin("plugin.serialization")
+    kotlin("jvm")
+}
+
 val localProperties = file("local.properties").takeIf { it.exists() }
 
 allprojects {
@@ -10,6 +18,62 @@ allprojects {
 
     repositories {
         mavenCentral()
+    }
+}
+
+dependencies {
+    val dockerJavaVersion: String by project
+    val serializationVersion: String by project
+    api("com.github.docker-java:docker-java:$dockerJavaVersion")
+    api("com.github.docker-java:docker-java-transport-httpclient5:$dockerJavaVersion")
+    api("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion")
+}
+
+kotlin {
+    sourceSets {
+        all {
+            languageSettings.optIn("kotlin.ExperimentalStdlibApi")
+        }
+    }
+}
+
+java {
+    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_1_8
+}
+
+pluginBundle {
+    website = "https://github.com/JetBrains/jetbrains-gradle-plugins"
+    vcsUrl = "https://github.com/JetBrains/jetbrains-gradle-plugins.git"
+    tags = listOf("docker", "container", "terraform", "cloud", "aws", "azure", "google", "liquibase", "migrations")
+}
+
+gradlePlugin {
+    plugins {
+        create("dockerPlugin") {
+            id = "org.jetbrains.gradle.docker"
+            displayName = "JetBrains Docker Plugin"
+            description = "Build and push Docker images from your build."
+            implementationClass = "org.jetbrains.gradle.plugins.docker.DockerPlugin"
+        }
+        create("terraformPlugin") {
+            id = "org.jetbrains.gradle.terraform"
+            displayName = "JetBrains Terraform Plugin"
+            description = "Source sets plugin for controlling terraform projects from Gradle, batteries included."
+            implementationClass = "org.jetbrains.gradle.plugins.terraform.TerraformPlugin"
+        }
+        create("liquibasePlugin") {
+            id = "org.jetbrains.gradle.liquibase"
+            displayName = "JetBrains Liquibase Plugin"
+            description = "Run migrations from Gradle using the Liquibase runtime."
+            implementationClass = "org.jetbrains.gradle.plugins.liquibase.LiquibasePlugin"
+        }
+    }
+}
+
+publishing {
+    repositories {
+        mavenLocal()
     }
 }
 

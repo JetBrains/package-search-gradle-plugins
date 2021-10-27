@@ -5,9 +5,7 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.kotlin.dsl.*
-import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
 import org.jetbrains.gradle.plugins.terraform.TerraformPlugin
 import java.io.File

@@ -3,9 +3,12 @@
 rootProject.name = "jetbrains-gradle-plugins"
 
 pluginManagement {
-    includeBuild("plugins")
     plugins {
-        kotlin("jvm") version "1.5.30"
+        val kotlinVersion: String by settings
+        val gradlePublishPluginVersion: String by settings
+        kotlin("jvm") version kotlinVersion
+        kotlin("plugin.serialization") version kotlinVersion
+        id("com.gradle.plugin-publish") version gradlePublishPluginVersion
     }
 }
 
@@ -20,12 +23,3 @@ gradleEnterprise {
         termsOfServiceAgree = "yes"
     }
 }
-
-include(
-    ":examples",
-    ":examples:docker-jvm-app",
-    ":examples:terraform",
-    ":examples:terraform:project-a",
-    ":examples:terraform:project-b",
-    ":examples:liquibase"
-)

@@ -12,7 +12,9 @@ import org.gradle.api.tasks.Sync
 import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.the
-import org.jetbrains.gradle.plugins.docker.tasks.*
+import org.jetbrains.gradle.plugins.docker.tasks.DockerBuildSpec
+import org.jetbrains.gradle.plugins.docker.tasks.DockerPushSpec
+import org.jetbrains.gradle.plugins.docker.tasks.GenerateJvmAppDockerfile
 import org.jetbrains.gradle.plugins.fromCamelCaseToKebabCase
 import org.jetbrains.gradle.plugins.has
 import org.jetbrains.gradle.plugins.toCamelCase
