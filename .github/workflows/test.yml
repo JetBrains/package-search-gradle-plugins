@@ -29,9 +29,6 @@ jobs:
           arguments: dockerPush
           build-root-directory: examples
           gradle-version: ${{ matrix.gradle-version }}
-      - name: Publish 'Docker CLI test' annotation
-        run: 'echo "::warning::Java ${{ matrix.java-version }}, Gradle ${{ matrix.gradle-version }} | Docker CLI test build scan: ${{ steps.docker-cli.outputs.build-scan-url }}"'
-        if: ${{ always() }}
 
       - name: Docker REST API test
         uses: gradle/gradle-build-action@v2
@@ -47,9 +44,6 @@ jobs:
           arguments: dockerPush
           build-root-directory: examples
           gradle-version: ${{ matrix.gradle-version }}
-      - name: Publish 'Docker REST API' annotation
-        run: 'echo "::warning::Java ${{ matrix.java-version }}, Gradle ${{ matrix.gradle-version }} | Docker REST API test build scan: ${{ steps.docker-rest.outputs.build-scan-url }}"'
-        if: matrix.os != 'windows-latest'
 
       # liquibase tests
       - name: Liquibase test
@@ -60,9 +54,6 @@ jobs:
           arguments: liquibaseUpdate
           build-root-directory: examples
           gradle-version: ${{ matrix.gradle-version }}
-      - name: Publish Liquibase annotation
-        run: 'echo "::warning::Java ${{ matrix.java-version }}, Gradle ${{ matrix.gradle-version }} | Liquibase test build scan: ${{ steps.liquibase.outputs.build-scan-url }}"'
-        if: ${{ always() }}
 
       # terraform tests
       - name: Terraform test
@@ -73,6 +64,3 @@ jobs:
           arguments: terraformInit
           build-root-directory: examples
           gradle-version: ${{ matrix.gradle-version }}
-      - name: Publish Terraform annotation
-        run: 'echo "::warning::Java ${{ matrix.java-version }}, Gradle ${{ matrix.gradle-version }} | Terraform test build scan: ${{ steps.terraform.outputs.build-scan-url }}"'
-        if: ${{ always() }}
