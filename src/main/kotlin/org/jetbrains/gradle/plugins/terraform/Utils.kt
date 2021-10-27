@@ -1,7 +1,6 @@
 package org.jetbrains.gradle.plugins.terraform
 
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.internal.os.OperatingSystem
 import java.io.Serializable
@@ -48,7 +47,5 @@ internal fun TerraformSourceSet.getSourceDependencies(): Set<TerraformSourceSet>
     }
     return visited
 }
-
-internal operator fun <T : Task> T.invoke(action: T.() -> Unit) = action(this)
 
 fun interface SerializableSupplier<T> : Supplier<T>, Serializable

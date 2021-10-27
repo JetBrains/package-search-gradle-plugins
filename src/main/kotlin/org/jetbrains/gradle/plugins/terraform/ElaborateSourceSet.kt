@@ -16,7 +16,10 @@ import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.configure
+import org.gradle.kotlin.dsl.invoke
+import org.gradle.kotlin.dsl.named
+import org.gradle.kotlin.dsl.register
 import org.jetbrains.gradle.plugins.executeAllOn
 import org.jetbrains.gradle.plugins.maybeRegister
 import org.jetbrains.gradle.plugins.terraform.tasks.*
@@ -25,7 +28,7 @@ import org.jetbrains.gradle.plugins.toCamelCase
 internal class TerraformTasksContainer private constructor(
     private val taskName: String,
     private val terraformModuleMetadata: TaskProvider<GenerateTerraformMetadata>,
-    private val terraformModuleZip: Zip,
+    private val terraformModuleZip: TaskProvider<Zip>,
     private val copyResFiles: TaskProvider<CopyTerraformResourceFileInModules>,
     private val createResFile: TaskProvider<GenerateResourcesTerraformFile>,
     private val copyExecutionContext: TaskProvider<Sync>,
@@ -66,7 +69,7 @@ internal class TerraformTasksContainer private constructor(
             val terraformModuleMetadata =
                 tasks.register<GenerateTerraformMetadata>("terraform${taskName}Metadata")
 
-            val terraformModuleZip = tasks.create<Zip>("terraform${taskName}Module")
+            val terraformModuleZip = tasks.register<Zip>("terraform${taskName}Module")
 
             if (sourceSet.name == "main")
                 createComponent(terraformApi, terraformModuleZip, softwareComponentFactory, terraformExtension)

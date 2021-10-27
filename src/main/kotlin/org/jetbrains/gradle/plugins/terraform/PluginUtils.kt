@@ -97,7 +97,7 @@ internal fun AbstractTerraformExec.attachSourceSet(sourceSet: TerraformSourceSet
 
 internal fun Project.createComponent(
     terraformApi: Configuration,
-    terraformModuleZip: Zip,
+    terraformModuleZip: TaskProvider<Zip>,
     softwareComponentFactory: SoftwareComponentFactory,
     terraformExtension: TerraformExtension
 ) {
