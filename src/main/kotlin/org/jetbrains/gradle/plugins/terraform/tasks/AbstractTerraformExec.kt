@@ -38,7 +38,7 @@ abstract class AbstractTerraformExec : DefaultTask() {
     var sourcesDirectory by project.objects.property<File>()
 
     @get:Internal
-    protected abstract var dataDir: File
+    abstract var dataDir: File
 
     @Internal
     protected abstract fun getTerraformArguments(): List<String>
