@@ -10,17 +10,12 @@ application {
     mainClass.set("org.jetbrains.gradle.docker.MainKt")
 }
 
+val ktorVersion: String by extra
+val logbackVersion: String by extra
+val junitVersion: String by extra
+
 dependencies {
 
-    val properties = rootProject.file("../gradle.properties")
-        .readLines()
-        .filter { it.isNotEmpty() && '=' in it }
-        .map { it.split("=") }
-        .associate { it[0] to it[1] }
-
-    val ktorVersion by properties
-    val logbackVersion by properties
-    val junitVersion by properties
 
     implementation("io.ktor:ktor-server-cio:$ktorVersion")
     implementation("ch.qos.logback:logback-classic:$logbackVersion")

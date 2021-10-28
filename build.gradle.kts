@@ -27,6 +27,8 @@ dependencies {
     api("com.github.docker-java:docker-java:$dockerJavaVersion")
     api("com.github.docker-java:docker-java-transport-httpclient5:$dockerJavaVersion")
     api("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion")
+    api(kotlin("reflect"))
+    implementation(kotlin("stdlib-jdk8"))
 }
 
 kotlin {
