@@ -3,8 +3,6 @@ package org.jetbrains.gradle.plugins.terraform
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.internal.os.OperatingSystem
-import java.io.Serializable
-import java.util.function.Supplier
 
 internal fun evaluateTerraformName(version: String) =
     "terraform_$version" + when {
@@ -47,5 +45,3 @@ internal fun TerraformSourceSet.getSourceDependencies(): Set<TerraformSourceSet>
     }
     return visited
 }
-
-fun interface SerializableSupplier<T> : Supplier<T>, Serializable

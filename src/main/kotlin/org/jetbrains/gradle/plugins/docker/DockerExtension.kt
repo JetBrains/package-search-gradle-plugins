@@ -50,9 +50,9 @@ abstract class DockerExtension(
      * Uses HTTP Docker API instead of the local command line. Default settings uses
      * the Docker unix port or `localhost:2375` on Windows with TLS disabled.
      */
-    fun useDockerRestApi(action: Remote.() -> Unit) {
+    fun useDockerRestApi(action: Action<Remote>) {
         useDockerRestApi()
-        remoteConfigBuilder?.apply(action)
+        remoteConfigBuilder?.also { action.execute(it) }
     }
 
     /**

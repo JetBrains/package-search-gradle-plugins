@@ -1,9 +1,21 @@
 package org.jetbrains.gradle.plugins.terraform.tasks
 
-import org.gradle.api.tasks.*
-import org.gradle.kotlin.dsl.*
-import org.jetbrains.gradle.plugins.*
-import org.jetbrains.gradle.plugins.terraform.SerializableSupplier
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.OutputFile
+import org.gradle.kotlin.dsl.getValue
+import org.gradle.kotlin.dsl.mapProperty
+import org.gradle.kotlin.dsl.property
+import org.gradle.kotlin.dsl.provideDelegate
+import org.gradle.kotlin.dsl.setValue
+import org.jetbrains.gradle.plugins.addAll
+import org.jetbrains.gradle.plugins.getValue
+import org.jetbrains.gradle.plugins.nullableProperty
+import org.jetbrains.gradle.plugins.propertyWithDefault
+import org.jetbrains.gradle.plugins.setValue
 import java.io.File
 
 open class TerraformPlan : AbstractTerraformExec() {
@@ -12,7 +24,10 @@ open class TerraformPlan : AbstractTerraformExec() {
     var isDestroy by project.objects.propertyWithDefault(false)
 
     @get:Input
-    var variables by project.objects.mapProperty<String, SerializableSupplier<String?>>()
+    var variables by project.objects.mapProperty<String, String?>()
+
+    @get:InputFiles
+    var fileVariables by project.objects.mapProperty<String, File>()
 
     @get:InputFile
     @get:Optional
@@ -42,8 +57,8 @@ open class TerraformPlan : AbstractTerraformExec() {
     override fun getTerraformArguments(): List<String> = buildList {
         add("plan")
         add("-input=false")
-        for ((k, v) in variables) {
-            addAll("-var", "$k=${v.get()}")
+        for ((k, v) in variables + fileVariables.mapValues { it.value.readText() }) {
+            addAll("-var", "$k=$v")
         }
         variablesFile?.run { add("-var-file=$absolutePath") }
         refresh?.let { add("-refresh=$it") }

@@ -22,7 +22,15 @@ import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
 import org.jetbrains.gradle.plugins.executeAllOn
 import org.jetbrains.gradle.plugins.maybeRegister
-import org.jetbrains.gradle.plugins.terraform.tasks.*
+import org.jetbrains.gradle.plugins.terraform.tasks.CopyTerraformResourceFileInModules
+import org.jetbrains.gradle.plugins.terraform.tasks.GenerateResourcesTerraformFile
+import org.jetbrains.gradle.plugins.terraform.tasks.GenerateTerraformMetadata
+import org.jetbrains.gradle.plugins.terraform.tasks.TerraformApply
+import org.jetbrains.gradle.plugins.terraform.tasks.TerraformExtract
+import org.jetbrains.gradle.plugins.terraform.tasks.TerraformInit
+import org.jetbrains.gradle.plugins.terraform.tasks.TerraformOutput
+import org.jetbrains.gradle.plugins.terraform.tasks.TerraformPlan
+import org.jetbrains.gradle.plugins.terraform.tasks.TerraformShow
 import org.jetbrains.gradle.plugins.toCamelCase
 
 internal class TerraformTasksContainer private constructor(
@@ -33,6 +41,7 @@ internal class TerraformTasksContainer private constructor(
     private val createResFile: TaskProvider<GenerateResourcesTerraformFile>,
     private val copyExecutionContext: TaskProvider<Sync>,
     private val syncLockFile: TaskProvider<Copy>,
+    val syncStateFile: TaskProvider<Copy>,
     private val tfInit: TaskProvider<TerraformInit>,
     private val tfShow: TaskProvider<TerraformShow>,
     private val tfPlan: TaskProvider<TerraformPlan>,
@@ -83,6 +92,7 @@ internal class TerraformTasksContainer private constructor(
             val copyExecutionContext = tasks.register<Sync>("generate${taskName}ExecutionContext")
 
             val syncLockFile = tasks.register<Copy>("sync${taskName}LockFile")
+            val syncStateFile = tasks.register<Copy>("sync${taskName}StateFile")
 
             plugins.withId("org.gradle.distribution") {
                 configure<DistributionContainer> {
@@ -132,7 +142,7 @@ internal class TerraformTasksContainer private constructor(
 
             return TerraformTasksContainer(
                 taskName, terraformModuleMetadata, terraformModuleZip, copyResFiles, createResFile,
-                copyExecutionContext, syncLockFile, tfInit, tfShow, tfPlan, tfApply, tfDestroyShow,
+                copyExecutionContext, syncLockFile, syncStateFile, tfInit, tfShow, tfPlan, tfApply, tfDestroyShow,
                 tfDestroyPlan, tfDestroy, terraformImplementation, lambdaConfiguration,
                 terraformExtension, sourceSet, project
             )
@@ -223,8 +233,18 @@ internal class TerraformTasksContainer private constructor(
         }
 
         syncLockFile {
-            from(sourceSet.runtimeExecutionDirectory.resolve(".terraform.lock.hcl"))
+            from(sourceSet.runtimeExecutionDirectory.resolve(".terraform.lock.hcl")) {
+                rename { sourceSet.lockFile.name }
+            }
             into(sourceSet.lockFile.parentFile)
+            duplicatesStrategy = DuplicatesStrategy.INCLUDE
+        }
+
+        syncStateFile {
+            from(sourceSet.runtimeExecutionDirectory.resolve(".terraform.lock.hcl")) {
+                rename { sourceSet.stateFile.name }
+            }
+            into(sourceSet.stateFile.parentFile)
             duplicatesStrategy = DuplicatesStrategy.INCLUDE
         }
 
@@ -249,6 +269,7 @@ internal class TerraformTasksContainer private constructor(
             attachSourceSet(sourceSet)
             outputPlanFile = sourceSet.outputBinaryPlan
             variables = sourceSet.planVariables
+            fileVariables = sourceSet.filePlanVariables
             finalizedBy(tfShow)
             sourceSet.tasksProvider.planActions.executeAllOn(this)
             if (terraformExtension.showPlanOutputInConsole)
@@ -289,6 +310,7 @@ internal class TerraformTasksContainer private constructor(
             outputPlanFile = sourceSet.outputDestroyBinaryPlan
             isDestroy = true
             variables = sourceSet.planVariables
+            fileVariables = sourceSet.filePlanVariables
             finalizedBy(tfDestroyShow)
             sourceSet.tasksProvider.destroyPlanActions.executeAllOn(this)
             if (terraformExtension.showPlanOutputInConsole)

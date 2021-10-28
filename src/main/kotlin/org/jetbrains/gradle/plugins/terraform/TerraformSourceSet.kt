@@ -4,17 +4,16 @@ import org.gradle.api.Action
 import org.gradle.api.Named
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.Project
-import org.gradle.api.provider.Provider
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.invoke
-import org.gradle.kotlin.dsl.mapProperty
-import org.gradle.kotlin.dsl.provideDelegate
 import org.gradle.kotlin.dsl.register
-import org.jetbrains.gradle.plugins.getValue
 import org.jetbrains.gradle.plugins.propertyWithDefault
-import org.jetbrains.gradle.plugins.setValue
-import org.jetbrains.gradle.plugins.terraform.tasks.*
+import org.jetbrains.gradle.plugins.terraform.tasks.TerraformApply
+import org.jetbrains.gradle.plugins.terraform.tasks.TerraformInit
+import org.jetbrains.gradle.plugins.terraform.tasks.TerraformOutput
+import org.jetbrains.gradle.plugins.terraform.tasks.TerraformPlan
+import org.jetbrains.gradle.plugins.terraform.tasks.TerraformShow
 import org.jetbrains.gradle.plugins.toCamelCase
 import java.io.File
 
@@ -59,6 +58,9 @@ open class TerraformSourceSet(private val project: Project, private val name: St
         }
     )
 
+    /**
+     * Adds the lamdas collected in the configuration as resources for this source set.
+     */
     var addLambdasToResources = false
 
     /**
@@ -88,6 +90,8 @@ open class TerraformSourceSet(private val project: Project, private val name: St
     var dataDir: File = project.file("$baseBuildDir/data")
 
     var lockFile: File = project.file("src/$name/terraform/.terraform.lock.hcl")
+
+    var stateFile: File = project.file("src/$name/terraform/terraform.tfstate")
 
     var metadata = TerraformModuleMetadata(
         group = project.group.toString(),
@@ -129,23 +133,85 @@ open class TerraformSourceSet(private val project: Project, private val name: St
 
     /**
      * Variables used to execute `terraform plan` and `terraform destroy`.
+     *
+     * NOTE: use [filePlanVariables] for passing variables generated from tasks.
      */
-    var planVariables by project.objects.mapProperty<String, SerializableSupplier<String?>>()
+    var planVariables = emptyMap<String, String?>()
 
-    fun planVariables(vararg variables: Pair<String, String>) = planVariables(variables.toMap())
+    /**
+     * Variables saved in files used to execute `terraform plan` and `terraform destroy`.
+     * The files will be read a UTF-8 and the entire content will be used as value for the variables.
+     *
+     * Use this map to pass tasks outputs as variable for `terraform plan`.
+     *
+     * Example:
+     * ```kotlin
+     *
+     * val myFile = file("output.txt")
+     * task("generator") {
+     *     doLast {
+     *         myFile.writeText("bhamamama")
+     *     }
+     * }
+     *
+     * // .....
+     *
+     * terraform {
+     *     sourceSets {
+     *         main {
+     *             filePlanVariables = mapOf("dr_kelso" to myFile)
+     *         }
+     *     }
+     * }
+     *
+     * ```
+     */
+    var filePlanVariables = emptyMap<String, File>()
 
-    fun planVariables(variables: Map<String, String?>) {
-        planVariables = variables.mapValues { SerializableSupplier { it.value } }.toMutableMap()
+    /**
+     * Variable that will be used to execute `terraform plan` and `terraform destroy`.
+     *
+     * NOTE: use overload with [File] for passing a variable generated from a task.
+     */
+    fun planVariable(key: String, value: String?) {
+        planVariables = planVariables.toMutableMap().also { it[key] = value }
     }
 
-    fun planVariable(key: String, value: Provider<String?>) = planVariable(key) { value.orNull }
-
-    fun planVariable(key: String, value: String) = planVariable(key) { value }
-
-    fun planVariable(key: String, value: SerializableSupplier<String?>) {
-        planVariables = planVariables.toMutableMap().apply { put(key, value) }.toMap()
+    /**
+     * Variable that will be read from file and used to execute `terraform plan` and `terraform destroy`.
+     *
+     * NOTE: use overload with [File] for passing a variable generated from a task.
+     *
+     * Use this fucction to pass tasks outputs as variable for `terraform plan`.
+     *
+     * Example:
+     * ```kotlin
+     *
+     * val myFile = file("output.txt")
+     * task("generator") {
+     *     doLast {
+     *         myFile.writeText("bhamamama")
+     *     }
+     * }
+     *
+     * // .....
+     *
+     * terraform {
+     *     sourceSets {
+     *         main {
+     *             planVariable("dr_kelso", myFile)
+     *         }
+     *     }
+     * }
+     *
+     */
+    fun planVariable(key: String, value: File) {
+        filePlanVariables = filePlanVariables.toMutableMap().also { it[key] = value }
     }
 
+    /**
+     * Creates a task to read an output from the TF state of the project.
+     */
     fun outputVariable(vararg names: String, action: Action<TerraformOutput> = Action {}) =
         project.tasks.register<TerraformOutput>(
             "terraform${name.toCamelCase().capitalize()}Output${names.joinToString("") { it.toCamelCase().capitalize() }}"
@@ -155,13 +221,15 @@ open class TerraformSourceSet(private val project: Project, private val name: St
         }.also { outputTasks.add(it) }
 
     /**
-     * Adds the main directory in which Terraform will be executed.
-     * Should contain the sources.
+     * Adds a directory into which look for Terraform `.tf` sources.
      */
     fun srcDir(string: String) {
         srcDirs.add(project.file(string))
     }
 
+    /**
+     * Adds a directory into which look for resources.
+     */
     fun resourceDir(string: String) {
         resourcesDirs.add(project.file(string))
     }
