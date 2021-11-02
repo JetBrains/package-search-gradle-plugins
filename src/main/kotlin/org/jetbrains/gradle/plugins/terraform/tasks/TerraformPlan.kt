@@ -3,7 +3,6 @@ package org.jetbrains.gradle.plugins.terraform.tasks
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
-import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.kotlin.dsl.getValue
@@ -26,7 +25,7 @@ open class TerraformPlan : AbstractTerraformExec() {
     @get:Input
     var variables by project.objects.mapProperty<String, String?>()
 
-    @get:InputFiles
+    @get:Input
     var fileVariables by project.objects.mapProperty<String, File>()
 
     @get:InputFile
@@ -37,7 +36,7 @@ open class TerraformPlan : AbstractTerraformExec() {
     @get:Optional
     var refresh: Boolean? by project.objects.nullableProperty()
 
-    @get: Input
+    @get:Input
     @get:Optional
     var replace: String? by project.objects.nullableProperty()
 
@@ -68,5 +67,4 @@ open class TerraformPlan : AbstractTerraformExec() {
         addAll("-parallelism=$parallelism")
         addAll("-out", outputPlanFile.absolutePath)
     }
-
 }
