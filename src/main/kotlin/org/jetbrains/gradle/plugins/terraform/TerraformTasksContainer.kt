@@ -40,7 +40,7 @@ internal class TerraformTasksContainer private constructor(
     private val tfDestroyShow: TaskProvider<TerraformShow>,
     private val tfDestroyPlan: TaskProvider<TerraformPlan>,
     private val tfDestroy: TaskProvider<TerraformApply>,
-    private val terraformImplementation: Configuration,
+    private val implementation: Configuration,
     private val lambdaConfiguration: Configuration,
     private val terraformExtension: TerraformExtension,
     private val sourceSet: TerraformSourceSet,
@@ -51,8 +51,8 @@ internal class TerraformTasksContainer private constructor(
         operator fun invoke(
             project: Project,
             sourceSet: TerraformSourceSet,
-            terraformApi: Configuration,
-            terraformImplementation: Configuration,
+            api: Configuration,
+            implementation: Configuration,
             lambdaConfiguration: Configuration,
             terraformExtract: TaskProvider<TerraformExtract>,
             terraformExtension: TerraformExtension,
@@ -72,7 +72,7 @@ internal class TerraformTasksContainer private constructor(
             val terraformModuleZip = tasks.register<Zip>("terraform${taskName}Module")
 
             if (sourceSet.name == "main")
-                createComponent(terraformApi, terraformModuleZip, softwareComponentFactory, terraformExtension)
+                createComponent(api, terraformModuleZip, softwareComponentFactory, terraformExtension, sourceSet)
 
             val copyResFiles =
                 tasks.register<CopyTerraformResourceFileInModules>("copy${taskName}ResFileInExecutionContext")
@@ -121,7 +121,7 @@ internal class TerraformTasksContainer private constructor(
             return TerraformTasksContainer(
                 taskName, terraformModuleMetadata, terraformModuleZip, copyResFiles, copyLibrariesMetadataFiles,
                 createResFile, copyExecutionContext, syncLockFile, syncStateFile, tfInit, tfShow, tfPlan, tfApply,
-                tfDestroyShow, tfDestroyPlan, tfDestroy, terraformImplementation, lambdaConfiguration,
+                tfDestroyShow, tfDestroyPlan, tfDestroy, implementation, lambdaConfiguration,
                 terraformExtension, sourceSet, project
             )
         }
@@ -165,7 +165,7 @@ internal class TerraformTasksContainer private constructor(
             configurations.create("terraform${taskName}RuntimeElements") {
                 isCanBeResolved = true
                 isCanBeConsumed = false
-                extendsFrom(terraformImplementation)
+                extendsFrom(implementation)
                 attributes {
                     attribute(Usage.USAGE_ATTRIBUTE, objects.named(TerraformPlugin.Attributes.USAGE))
                     attribute(

@@ -4,5 +4,5 @@ plugins {
 
 
 dependencies {
-    terraformApi(projects.terraform.projectA)
+    api(projects.terraform.projectA)
 }

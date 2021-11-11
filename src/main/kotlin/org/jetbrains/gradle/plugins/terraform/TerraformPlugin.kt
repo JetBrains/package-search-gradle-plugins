@@ -9,6 +9,7 @@ import org.gradle.api.component.SoftwareComponentFactory
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.gradle.plugins.component6
 import org.jetbrains.gradle.plugins.component7
+import org.jetbrains.gradle.plugins.maybeCreating
 import org.jetbrains.gradle.plugins.terraform.tasks.TerraformExtract
 import java.io.File
 import javax.inject.Inject
@@ -44,12 +45,14 @@ open class TerraformPlugin @Inject constructor(
                 attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.SHADOWED))
             }
         }
-        val terraformApi by configurations.creating {
+
+        val api by configurations.maybeCreating {
             isCanBeConsumed = true
         }
-        val terraformImplementation by configurations.creating {
+
+        val implementation by configurations.maybeCreating {
             isCanBeConsumed = true
-            extendsFrom(terraformApi)
+            extendsFrom(api)
         }
 
         val (terraformExtension, sourceSets) = createExtension()
@@ -64,8 +67,8 @@ open class TerraformPlugin @Inject constructor(
             val tasksToConfigure = TerraformTasksContainer(
                 project = project,
                 sourceSet = this,
-                terraformApi = terraformApi,
-                terraformImplementation = terraformImplementation,
+                api = api,
+                implementation = implementation,
                 lambdaConfiguration = lambda,
                 terraformExtract = terraformExtract,
                 terraformExtension = terraformExtension,

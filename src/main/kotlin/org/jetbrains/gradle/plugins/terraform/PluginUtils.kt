@@ -17,6 +17,7 @@ import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.jvm.tasks.Jar
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.gradle.plugins.executeAllOn
 import org.jetbrains.gradle.plugins.maybeRegister
@@ -84,8 +85,7 @@ internal fun Project.createExtension(): Pair<TerraformExtension, NamedDomainObje
 
     val terraformExtension = extensions.create<TerraformExtension>(
         TerraformPlugin.TERRAFORM_EXTENSION_NAME,
-        TerraformPlugin.TERRAFORM_EXTENSION_NAME,
-        sourceSets
+        TerraformPlugin.TERRAFORM_EXTENSION_NAME
     )
 
     terraformExtension.extensions.add("sourceSets", sourceSets)
@@ -124,15 +124,16 @@ internal fun Project.createDistribution(
 }
 
 internal fun Project.createComponent(
-    terraformApi: Configuration,
+    api: Configuration,
     terraformModuleZip: TaskProvider<Zip>,
     softwareComponentFactory: SoftwareComponentFactory,
-    terraformExtension: TerraformExtension
+    terraformExtension: TerraformExtension,
+    sourceSet: TerraformSourceSet
 ) {
     val terraformOutgoingElements =
         configurations.create("terraformOutgoingElements") {
             isCanBeConsumed = true
-            extendsFrom(terraformApi)
+            extendsFrom(api)
             outgoing.artifact(terraformModuleZip)
             attributes {
                 attribute(Usage.USAGE_ATTRIBUTE, objects.named(TerraformPlugin.Attributes.USAGE))
@@ -152,6 +153,17 @@ internal fun Project.createComponent(
     }
 
     plugins.withId("org.gradle.maven-publish") {
+
+        val terraformMainJavadocJar by tasks.registering(Jar::class) {
+            from(sourceSet.srcDirs)
+            archiveClassifier.set("javadoc")
+        }
+
+        val terraformMainSourcesJar by tasks.registering(Jar::class) {
+            from(sourceSet.srcDirs)
+            archiveClassifier.set("sources")
+        }
+
         configure<PublishingExtension> {
             publications {
                 create<MavenPublication>("terraform") {
@@ -159,6 +171,8 @@ internal fun Project.createComponent(
                     artifactId = project.name
                     version = project.version.toString()
                     from(component)
+                    artifact(terraformMainJavadocJar)
+                    artifact(terraformMainSourcesJar)
                     afterEvaluate { terraformExtension.mavenPublicationActions.executeAllOn(this@create) }
                 }
             }

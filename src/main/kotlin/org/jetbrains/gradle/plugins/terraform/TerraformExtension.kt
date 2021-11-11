@@ -6,11 +6,11 @@ import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.specs.Spec
+import org.gradle.kotlin.dsl.getByName
 import org.jetbrains.gradle.plugins.terraform.tasks.TerraformApply
 
 abstract class TerraformExtension(
     private val name: String,
-    private val sourceSets: NamedDomainObjectContainer<TerraformSourceSet>
 ) : Named, ExtensionAware {
 
     internal val mavenPublicationActions = mutableListOf<Action<MavenPublication>>()
@@ -31,9 +31,9 @@ abstract class TerraformExtension(
         "Configure each source set separately using sourceSets extension.",
         ReplaceWith("sourceSets { all { executeApplyOnlyIf(action) } }")
     )
-    fun executeApplyOnlyIf(action: Spec<TerraformApply>) {
-        sourceSets.all { executeApplyOnlyIf(action) }
-    }
+    fun executeApplyOnlyIf(action: Spec<TerraformApply>) =
+        extensions.getByName<NamedDomainObjectContainer<TerraformSourceSet>>("sourceSets")
+            .all { executeApplyOnlyIf(action) }
 
     /**
      * Register the check to execute `terraform destroy`. If `false`, `terraform destroy` cannot be executed.
@@ -43,9 +43,9 @@ abstract class TerraformExtension(
         "Configure each source set separately using sourceSets extension.",
         ReplaceWith("sourceSets { all { executeDestroyOnlyIf(action) } }")
     )
-    fun executeDestroyOnlyIf(action: Spec<TerraformApply>) {
-        sourceSets.all { executeDestroyOnlyIf(action) }
-    }
+    fun executeDestroyOnlyIf(action: Spec<TerraformApply>) =
+        extensions.getByName<NamedDomainObjectContainer<TerraformSourceSet>>("sourceSets")
+            .all { executeDestroyOnlyIf(action) }
 
     fun mavenPublication(action: Action<MavenPublication>) {
         mavenPublicationActions.add(action)
