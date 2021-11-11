@@ -84,7 +84,9 @@ open class TerraformPlugin @Inject constructor(
         afterEvaluate {
 
             terraformExtract {
-                configuration = generateTerraformDetachedConfiguration(terraformExtension.version)
+                val conf = generateTerraformDetachedConfiguration(terraformExtension.version)
+                dependsOn(conf)
+                configuration = conf
                 val executableName = evaluateTerraformName(terraformExtension.version)
                 outputExecutable = File(buildDir, "terraform/$executableName")
             }

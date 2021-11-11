@@ -8,16 +8,21 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.component.SoftwareComponentFactory
+import org.gradle.api.distribution.DistributionContainer
 import org.gradle.api.provider.Property
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.specs.Spec
+import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Zip
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.gradle.plugins.executeAllOn
+import org.jetbrains.gradle.plugins.maybeRegister
 import org.jetbrains.gradle.plugins.terraform.tasks.AbstractTerraformExec
 import org.jetbrains.gradle.plugins.terraform.tasks.TerraformApply
+import org.jetbrains.gradle.plugins.terraform.tasks.TerraformExtract
 import org.jetbrains.gradle.plugins.toCamelCase
 import java.io.File
 
@@ -93,6 +98,29 @@ internal fun Project.createExtension(): Pair<TerraformExtension, NamedDomainObje
 internal fun AbstractTerraformExec.attachSourceSet(sourceSet: TerraformSourceSet) {
     sourcesDirectory = sourceSet.runtimeExecutionDirectory
     dataDir = sourceSet.dataDir
+}
+
+internal fun Project.createDistribution(
+    sourceSet: TerraformSourceSet,
+    copyExecutionContext: TaskProvider<Sync>,
+    terraformExtract: TaskProvider<TerraformExtract>
+) {
+    configure<DistributionContainer> {
+        maybeRegister(sourceSet.name) {
+            contents {
+                from(copyExecutionContext)
+                from(terraformExtract) {
+                    rename {
+                        buildString {
+                            append("terraform")
+                            if (OperatingSystem.current().isWindows)
+                                append(".exe")
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 internal fun Project.createComponent(

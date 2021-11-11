@@ -1,12 +1,13 @@
 package org.jetbrains.gradle.plugins.terraform
 
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.component.SoftwareComponentFactory
-import org.gradle.api.distribution.DistributionContainer
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.RelativePath
@@ -15,22 +16,11 @@ import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Zip
-import org.gradle.internal.os.OperatingSystem
-import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.invoke
 import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
 import org.jetbrains.gradle.plugins.executeAllOn
-import org.jetbrains.gradle.plugins.maybeRegister
-import org.jetbrains.gradle.plugins.terraform.tasks.CopyTerraformResourceFileInModules
-import org.jetbrains.gradle.plugins.terraform.tasks.GenerateResourcesTerraformFile
-import org.jetbrains.gradle.plugins.terraform.tasks.GenerateTerraformMetadata
-import org.jetbrains.gradle.plugins.terraform.tasks.TerraformApply
-import org.jetbrains.gradle.plugins.terraform.tasks.TerraformExtract
-import org.jetbrains.gradle.plugins.terraform.tasks.TerraformInit
-import org.jetbrains.gradle.plugins.terraform.tasks.TerraformOutput
-import org.jetbrains.gradle.plugins.terraform.tasks.TerraformPlan
-import org.jetbrains.gradle.plugins.terraform.tasks.TerraformShow
+import org.jetbrains.gradle.plugins.terraform.tasks.*
 import org.jetbrains.gradle.plugins.toCamelCase
 
 internal class TerraformTasksContainer private constructor(
@@ -38,10 +28,11 @@ internal class TerraformTasksContainer private constructor(
     private val terraformModuleMetadata: TaskProvider<GenerateTerraformMetadata>,
     private val terraformModuleZip: TaskProvider<Zip>,
     private val copyResFiles: TaskProvider<CopyTerraformResourceFileInModules>,
+    private val copyLibrariesMetadataFiles: TaskProvider<Sync>,
     private val createResFile: TaskProvider<GenerateResourcesTerraformFile>,
     private val copyExecutionContext: TaskProvider<Sync>,
     private val syncLockFile: TaskProvider<Copy>,
-    val syncStateFile: TaskProvider<Copy>,
+    private val syncStateFile: TaskProvider<Copy>,
     private val tfInit: TaskProvider<TerraformInit>,
     private val tfShow: TaskProvider<TerraformShow>,
     private val tfPlan: TaskProvider<TerraformPlan>,
@@ -89,28 +80,15 @@ internal class TerraformTasksContainer private constructor(
             val createResFile =
                 tasks.register<GenerateResourcesTerraformFile>("generate${taskName}ResFile")
 
+            val copyLibrariesMetadataFiles = tasks.register<Sync>("copy${taskName}MetadataFiles")
+
             val copyExecutionContext = tasks.register<Sync>("generate${taskName}ExecutionContext")
 
             val syncLockFile = tasks.register<Copy>("sync${taskName}LockFile")
             val syncStateFile = tasks.register<Copy>("sync${taskName}StateFile")
 
             plugins.withId("org.gradle.distribution") {
-                configure<DistributionContainer> {
-                    maybeRegister(sourceSet.name) {
-                        contents {
-                            from(copyExecutionContext)
-                            from(terraformExtract) {
-                                rename {
-                                    buildString {
-                                        append("terraform")
-                                        if (OperatingSystem.current().isWindows)
-                                            append(".exe")
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                createDistribution(sourceSet, copyExecutionContext, terraformExtract)
             }
 
             val tfInit: TaskProvider<TerraformInit> = tasks.register<TerraformInit>("terraform${taskName}Init")
@@ -141,9 +119,9 @@ internal class TerraformTasksContainer private constructor(
             terraformDestroy { dependsOn(tfDestroy) }
 
             return TerraformTasksContainer(
-                taskName, terraformModuleMetadata, terraformModuleZip, copyResFiles, createResFile,
-                copyExecutionContext, syncLockFile, syncStateFile, tfInit, tfShow, tfPlan, tfApply, tfDestroyShow,
-                tfDestroyPlan, tfDestroy, terraformImplementation, lambdaConfiguration,
+                taskName, terraformModuleMetadata, terraformModuleZip, copyResFiles, copyLibrariesMetadataFiles,
+                createResFile, copyExecutionContext, syncLockFile, syncStateFile, tfInit, tfShow, tfPlan, tfApply,
+                tfDestroyShow, tfDestroyPlan, tfDestroy, terraformImplementation, lambdaConfiguration,
                 terraformExtension, sourceSet, project
             )
         }
@@ -155,7 +133,9 @@ internal class TerraformTasksContainer private constructor(
             metadata = sourceSet.metadata
         }
 
-        fun CopySpec.sourcesCopySpec(action: CopySpec.() -> Unit = {}) {
+        fun CopySpec.sourcesCopySpec(
+            action: CopySpec.() -> Unit = {}
+        ) {
             from(sourceSet.getSourceDependencies().flatMap { it.srcDirs } + sourceSet.srcDirs) {
                 action()
                 include { it.file.extension == "tf" || it.isDirectory }
@@ -171,12 +151,13 @@ internal class TerraformTasksContainer private constructor(
         terraformModuleZip {
             from(terraformModuleMetadata)
             sourcesCopySpec {
-                into("src/${sourceSet.metadata.group}/${sourceSet.metadata.moduleName}")
+                into("src/${sourceSet.metadata.group.replace(".", "/")}/${sourceSet.metadata.moduleName}")
             }
             includeEmptyDirs = false
             exclude { it.file.endsWith(".terraform.lock.hcl") }
             duplicatesStrategy = DuplicatesStrategy.WARN
-            archiveFileName.set("terraform${project.name.toCamelCase().capitalize()}${taskName}.tfmodule")
+            archiveFileName.set("terraform${project.name.toCamelCase().capitalize()}${taskName}")
+            archiveExtension.set("tfmodule")
             destinationDirectory.set(file("$buildDir/terraform/archives"))
         }
 
@@ -210,8 +191,30 @@ internal class TerraformTasksContainer private constructor(
             finalizedBy(copyResFiles)
         }
 
-        copyExecutionContext {
+        copyLibrariesMetadataFiles {
             dependsOn(terraformRuntimeElements)
+            var count = 0
+            from(terraformRuntimeElements.resolve().map { zipTree(it) }) {
+                include { it.name == "metadata.json" }
+                rename { "${count++}.tfmetadata" }
+            }
+            into("${sourceSet.baseBuildDir}/tmp/librariesMetadata")
+        }
+
+        copyExecutionContext {
+            dependsOn(copyLibrariesMetadataFiles)
+
+            val metadata = mutableSetOf<TerraformModuleMetadata>()
+
+            doFirst {
+                copyLibrariesMetadataFiles.get().destinationDir
+                    .listFiles { file -> file.extension == "tfmetadata" }
+                    ?.mapNotNull {
+                        runCatching { Json.decodeFromString<TerraformModuleMetadata>(it.readText()) }
+                            .getOrNull()
+                    }
+                    ?.let { metadata.addAll(it) }
+            }
 
             from(terraformRuntimeElements.resolve().map { zipTree(it) }) {
                 eachFile {
@@ -221,10 +224,15 @@ internal class TerraformTasksContainer private constructor(
                             *relativePath.segments.drop(1).toTypedArray()
                         )
                     }
+                    resolveModules(metadata)
                 }
             }
             from(terraformModuleMetadata)
-            sourcesCopySpec()
+            sourcesCopySpec {
+                eachFile {
+                    resolveModules(metadata)
+                }
+            }
             exclude { it.name == "metadata.json" }
             includeEmptyDirs = false
             from(sourceSet.lockFile)
@@ -328,5 +336,19 @@ internal class TerraformTasksContainer private constructor(
         }
 
     }
+}
+
+inline fun <reified T> Array<T>.uncommonElementsFromLeft(other: Array<T>): Array<T> {
+    val iterator = iterator()
+    val otherIterator = other.iterator()
+
+    while (iterator.hasNext() && otherIterator.hasNext()) {
+        val element = iterator.next()
+        val otherElement = otherIterator.next()
+
+        if (element != otherElement)
+            return arrayOf(element, *iterator.asSequence().toList().toTypedArray())
+    }
+    return emptyArray()
 }
 

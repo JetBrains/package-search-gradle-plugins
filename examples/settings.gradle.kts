@@ -33,5 +33,6 @@ include(
     ":docker-jvm-app",
     ":terraform",
     ":terraform:project-a",
-    ":terraform:project-b"
+    ":terraform:project-b",
+    ":terraform:project-c"
 )

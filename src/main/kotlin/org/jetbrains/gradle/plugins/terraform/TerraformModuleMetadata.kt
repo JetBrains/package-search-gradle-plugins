@@ -4,4 +4,6 @@ import kotlinx.serialization.Serializable
 import java.io.Serializable as JavaSerializable
 
 @Serializable
-data class TerraformModuleMetadata(var group: String, var moduleName: String, var version: String) : JavaSerializable
+data class TerraformModuleMetadata(var group: String, var moduleName: String, var version: String) : JavaSerializable {
+    val asPath by lazy { "${group.replace(".", "/")}/$moduleName" }
+}

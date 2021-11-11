@@ -2,6 +2,7 @@ package org.jetbrains.gradle.plugins.terraform
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.file.FileCopyDetails
 import org.gradle.internal.os.OperatingSystem
 
 internal fun evaluateTerraformName(version: String) =
@@ -30,9 +31,7 @@ internal fun computeTerraformModuleName(version: String): String {
 
 internal fun Project.generateTerraformDetachedConfiguration(version: String): Configuration {
     val dependency = dependencies.create(computeTerraformModuleName(version))
-    val configuration = configurations.detachedConfiguration(dependency)
-    configuration.isTransitive = false
-    return configuration
+    return configurations.detachedConfiguration(dependency)
 }
 
 internal fun TerraformSourceSet.getSourceDependencies(): Set<TerraformSourceSet> {
@@ -44,4 +43,42 @@ internal fun TerraformSourceSet.getSourceDependencies(): Set<TerraformSourceSet>
         queue.addAll(currentSourceSet.dependsOn.filter { it !in visited })
     }
     return visited
+}
+
+internal fun FileCopyDetails.resolveModules(
+    availableModules: Set<TerraformModuleMetadata>
+) = filter { line ->
+
+    val hasSourceKeyword = "source" in line
+    val substring1 by lazy { line.substringAfter("source") }
+    val hasEqualsAfterSource by lazy { "=" in substring1 }
+    val substring2 by lazy { substring1.substringAfter("=") }
+    val hasModulesKeyword by lazy { "modules." in substring2 }
+    val substring3 by lazy { substring2.substringAfter("modules.").replace(".", "/") }
+    val moduleMatch by lazy { availableModules.find { it.asPath in substring3 } }
+
+    if (hasSourceKeyword && hasEqualsAfterSource && hasModulesKeyword && moduleMatch != null)
+        buildString {
+            append(line.substringBefore("source"))
+            append("source = ")
+            append('"')
+            when (relativePath.segments.size) {
+                1 -> append("./${moduleMatch!!.asPath}")
+                else -> {
+                    val modulePathSegments = moduleMatch!!.asPath
+                        .split("/").toTypedArray()
+
+                    val uncommonElements: Array<String> = relativePath.parent.segments
+                        .uncommonElementsFromLeft(modulePathSegments)
+
+                    repeat(uncommonElements.size) { append("../") }
+
+                    append(
+                        modulePathSegments.uncommonElementsFromLeft(relativePath.parent.segments)
+                            .joinToString("/")
+                    )
+                }
+            }
+            append('"')
+        } else line
 }

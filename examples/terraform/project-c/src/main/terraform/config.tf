@@ -22,12 +22,12 @@ output "neptune_cluster_endpoint" {
 ## ------ AWS Neptune Cluster  -------------------------------------------------
 resource "aws_neptune_cluster" "example" {
 
-  cluster_identifier = "neptune-cluster-demo"
-  engine = "neptune"
-  skip_final_snapshot = true
+  cluster_identifier                  = "neptune-cluster-demo"
+  engine                              = "neptune"
+  skip_final_snapshot                 = true
   iam_database_authentication_enabled = false
-  apply_immediately = true
-  vpc_security_group_ids = [aws_security_group.neptune_example.id]
+  apply_immediately                   = true
+  vpc_security_group_ids              = [aws_security_group.neptune_example.id]
 
 }
 
@@ -47,25 +47,19 @@ resource "aws_security_group" "neptune_example" {
     from_port   = 8182
     to_port     = 8182
     protocol    = "tcp"
-    self = true
+    self        = true
     cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
     from_port   = 0
     to_port     = 0
-    protocol    = var.resources.whatever.lol
+    protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
 }
 
-locals {
-  modules = {
-    aDir = "./aDir"
-  }
-}
-
-module "aDir" {
+module "banana" {
   source = modules.org.jetbrains.gradle.project-a
 }
