@@ -60,7 +60,7 @@ tasks:
 - `terraformPlan`: generates the plan in `.bin` and `.json` format.
 - `terraformApply`: applies the generated plan from `terraformPlan`.
 - `terraformDestroyPlan`: generates the destroy plan in `.bin` and `.json` format.
-- `terraformDestroyApply`: applies the plan from `terraformMainDestroyPlan`.
+- `terraformDestroyApply`: applies the plan from `terraformDestroyPlan`.
 
 `terraform init` will be always executed before a plan automatically.
 
