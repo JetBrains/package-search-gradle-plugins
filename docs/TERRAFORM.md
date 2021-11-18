@@ -109,7 +109,7 @@ place the right dependency. You of course commit your build script because it co
 project, making it 100% reproducible on every machine (assuming I wrote correctly the plugin 🙈).
 
 Unfortunately, I cannot convert what is already out there into the Gradle format, as such this plugin also handles the
-local lock file since providers are must always be published on the HashiCorp portal. To mitigate that, you should
+local lock file since providers must always be published on the HashiCorp portal. To mitigate that, you should
 ALWAYS set the version of a module or a provider in your sources, even if declaring the version of a dependency in the
 actual sources is not really a good thing to do (but it's always better than relying on a generated file that does that
 for you).
