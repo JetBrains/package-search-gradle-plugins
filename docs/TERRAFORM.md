@@ -362,7 +362,7 @@ Let's see an example:
 |-src
 |  |-main
 |     |-terraform
-|          |- main.tf
+|     |    |- main.tf
 |     |-resources
 |          |- myLambda.zip
 ```
