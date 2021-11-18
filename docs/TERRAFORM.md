@@ -374,8 +374,8 @@ will be available with shape:
 variable "resources" {
   default = {
     myfile_txt = {
-      path                   = "./resources/myLambda.txt"
-      name                   = "myLambda.txt"
+      path                   = "./resources/myLambda.zip"
+      name                   = "myLambda.zip"
       name-without-extension = "myLambda"
       ext                    = "txt"
     }
