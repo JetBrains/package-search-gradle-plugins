@@ -188,13 +188,13 @@ internal fun TerraformApply.configureApply(
 ) {
     dependsOn(dependsOn)
     planFile = binaryPlanFile
-    onlyIf {
-        val canExecuteApply = spec.get().isSatisfiedBy(this)
-        if (!canExecuteApply) logger.warn(
+
+    doFirst {
+        val canExecuteApply = spec.get().isSatisfiedBy(this@configureApply)
+        if (!canExecuteApply) error(
             "Cannot execute $name. Please check " +
-                    "your terraform extension in the script."
+                "your terraform extension in the script."
         )
-        canExecuteApply
     }
     configurations.executeAllOn(this)
 }

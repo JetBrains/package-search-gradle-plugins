@@ -240,8 +240,10 @@ internal class TerraformTasksContainer private constructor(
             finalizedBy(createResFile)
         }
 
+        val runtimeLockFile = sourceSet.runtimeExecutionDirectory.resolve(".terraform.lock.hcl")
+
         syncLockFile {
-            from(sourceSet.runtimeExecutionDirectory.resolve(".terraform.lock.hcl")) {
+            from(runtimeLockFile) {
                 rename { sourceSet.lockFile.name }
             }
             into(sourceSet.lockFile.parentFile)
@@ -249,7 +251,7 @@ internal class TerraformTasksContainer private constructor(
         }
 
         syncStateFile {
-            from(sourceSet.runtimeExecutionDirectory.resolve(".terraform.lock.hcl")) {
+            from(runtimeLockFile) {
                 rename { sourceSet.stateFile.name }
             }
             into(sourceSet.stateFile.parentFile)
@@ -273,6 +275,7 @@ internal class TerraformTasksContainer private constructor(
         }
 
         tfPlan {
+            outputs.upToDateWhen { runtimeLockFile.exists() }
             dependsOn(tfInit)
             attachSourceSet(sourceSet)
             outputPlanFile = sourceSet.outputBinaryPlan
@@ -292,6 +295,8 @@ internal class TerraformTasksContainer private constructor(
                 sourceSet.outputBinaryPlan,
                 sourceSet.tasksProvider.applyActions
             )
+            if (terraformExtension.showApplyOutputInConsole)
+                logging.captureStandardOutput(LogLevel.LIFECYCLE)
         }
 
         sourceSet.outputTasks.configureEach {
@@ -299,20 +304,21 @@ internal class TerraformTasksContainer private constructor(
             attachSourceSet(sourceSet)
             val fileName = variables.joinToString("") { it.toCamelCase().capitalize() }.decapitalize()
             val extension = when (format) {
-                TerraformOutput.Format.JSON -> ".json"
-                TerraformOutput.Format.RAW -> ".txt"
+                TerraformOutput.Format.JSON -> "json"
+                TerraformOutput.Format.RAW -> "txt"
             }
             outputFile = file("${sourceSet.baseBuildDir}/outputs/$fileName.$extension")
         }
 
         tfDestroyShow {
             attachSourceSet(sourceSet)
-            inputPlanFile = sourceSet.outputBinaryPlan
+            inputPlanFile = sourceSet.outputDestroyBinaryPlan
             outputJsonPlanFile = sourceSet.outputDestroyJsonPlan
             sourceSet.tasksProvider.destroyShowActions.executeAllOn(this)
         }
 
         tfDestroyPlan {
+            outputs.upToDateWhen { runtimeLockFile.exists() }
             attachSourceSet(sourceSet)
             dependsOn(tfInit)
             outputPlanFile = sourceSet.outputDestroyBinaryPlan
@@ -333,6 +339,8 @@ internal class TerraformTasksContainer private constructor(
                 sourceSet.outputDestroyBinaryPlan,
                 sourceSet.tasksProvider.destroyActions
             )
+            if (terraformExtension.showApplyOutputInConsole)
+                logging.captureStandardOutput(LogLevel.LIFECYCLE)
         }
 
     }
@@ -351,4 +359,3 @@ inline fun <reified T> Array<T>.uncommonElementsFromLeft(other: Array<T>): Array
     }
     return emptyArray()
 }
-

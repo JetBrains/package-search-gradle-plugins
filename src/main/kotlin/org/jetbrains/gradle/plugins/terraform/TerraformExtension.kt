@@ -22,6 +22,7 @@ abstract class TerraformExtension(
 
     var showPlanOutputInConsole = true
     var showInitOutputInConsole = true
+    var showApplyOutputInConsole = true
 
     /**
      * Register the check to execute `terraform apply`. If `false`, `terraform apply` cannot be executed.

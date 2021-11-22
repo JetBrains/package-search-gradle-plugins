@@ -74,7 +74,13 @@ open class LiquibasePlugin : Plugin<Project> {
         jvmArgs = activity.jvmArgs
         classpath(liquibaseConfiguration)
 
-        args = activity.buildArgsCliFor(project, liquibaseCommand)
+        val value: String? = when {
+            properties.containsKey("liquibaseCommandValue") -> properties["liquibaseCommandValue"] as String
+            liquibaseCommand == LiquibaseCommand.DB_DOC -> file("${project.project.buildDir}/database/docs").absolutePath
+            else -> null
+        }
+
+        args = activity.buildArgsCliFor(liquibaseCommand, value)
 
         if (liquibaseCommand.requiresValue)
             doFirst {
@@ -95,7 +101,7 @@ open class Activity(val name: String) {
         mutableMapOf<LiquibaseCommand, MutableList<Action<JavaExec>>>()
             .withDefault { mutableListOf() }
 
-    fun buildArgsCliFor(project: Project, command: LiquibaseCommand) = buildList {
+    fun buildArgsCliFor(command: LiquibaseCommand, liquibaseCommandValue: String? = null) = buildList {
         arguments.filterNot { it.key in LiquibasePlugin.commandParams }.map { "--${it.key}=${it.value}" }
             .takeIf { it.isNotEmpty() }
             ?.let { this.addAll(it) }
@@ -106,14 +112,7 @@ open class Activity(val name: String) {
         parameters.map { "-D${it.key}=${it.value}" }
             .takeIf { it.isNotEmpty() }
             ?.let { this.addAll(it) }
-        if (command.requiresValue) {
-            val value: String? = when {
-                project.properties.containsKey("liquibaseCommandValue") -> project.properties["liquibaseCommandValue"] as String
-                command == LiquibaseCommand.DB_DOC -> project.project.file("${project.project.buildDir}/database/docs").absolutePath
-                else -> null
-            }
-            value?.let { this.add(it) }
-        }
+        liquibaseCommandValue?.let { add(it) }
     }
 
     /**
@@ -121,7 +120,7 @@ open class Activity(val name: String) {
      * the given [command] for this Activity.
      */
     fun onCommand(command: LiquibaseCommand, action: Action<JavaExec>) {
-        taskActionsMap.getValue(command).add(action)
+        taskActionsMap.getOrPut(command) { mutableListOf() }.add(action)
     }
 
     /**
