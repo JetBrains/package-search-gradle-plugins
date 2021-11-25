@@ -241,6 +241,7 @@ internal class TerraformTasksContainer private constructor(
         }
 
         val runtimeLockFile = sourceSet.runtimeExecutionDirectory.resolve(".terraform.lock.hcl")
+        val runtimeStateFile = sourceSet.runtimeExecutionDirectory.resolve("terraform.tfstate")
 
         syncLockFile {
             from(runtimeLockFile) {
@@ -251,7 +252,7 @@ internal class TerraformTasksContainer private constructor(
         }
 
         syncStateFile {
-            from(runtimeLockFile) {
+            from(runtimeStateFile) {
                 rename { sourceSet.stateFile.name }
             }
             into(sourceSet.stateFile.parentFile)
@@ -275,7 +276,7 @@ internal class TerraformTasksContainer private constructor(
         }
 
         tfPlan {
-            outputs.upToDateWhen { runtimeLockFile.exists() }
+            outputs.upToDateWhen { runtimeStateFile.exists() }
             dependsOn(tfInit)
             attachSourceSet(sourceSet)
             outputPlanFile = sourceSet.outputBinaryPlan
@@ -302,6 +303,7 @@ internal class TerraformTasksContainer private constructor(
         sourceSet.outputTasks.configureEach {
             dependsOn(tfInit)
             attachSourceSet(sourceSet)
+            outputs.upToDateWhen { runtimeStateFile.exists() }
             val fileName = variables.joinToString("") { it.toCamelCase().capitalize() }.decapitalize()
             val extension = when (format) {
                 TerraformOutput.Format.JSON -> "json"
@@ -318,7 +320,7 @@ internal class TerraformTasksContainer private constructor(
         }
 
         tfDestroyPlan {
-            outputs.upToDateWhen { runtimeLockFile.exists() }
+            outputs.upToDateWhen { runtimeStateFile.exists() }
             attachSourceSet(sourceSet)
             dependsOn(tfInit)
             outputPlanFile = sourceSet.outputDestroyBinaryPlan
