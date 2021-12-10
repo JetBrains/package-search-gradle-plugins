@@ -104,14 +104,14 @@ open class Activity(val name: String) {
     fun buildArgsCliFor(command: LiquibaseCommand, liquibaseCommandValue: String? = null) = buildList {
         arguments.filterNot { it.key in LiquibasePlugin.commandParams }.map { "--${it.key}=${it.value}" }
             .takeIf { it.isNotEmpty() }
-            ?.let { this.addAll(it) }
+            ?.let { addAll(it) }
         this.add(command.command)
         arguments.filter { it.key in LiquibasePlugin.commandParams }.map { "--${it.key}=${it.value}" }
             .takeIf { it.isNotEmpty() }
-            ?.let { this.addAll(it) }
+            ?.let { addAll(it) }
         parameters.map { "-D${it.key}=${it.value}" }
             .takeIf { it.isNotEmpty() }
-            ?.let { this.addAll(it) }
+            ?.let { addAll(it) }
         liquibaseCommandValue?.let { add(it) }
     }
 
