@@ -21,7 +21,7 @@ internal fun computeTerraformModuleName(version: String): String {
     }
     val archProperty: String = System.getProperty("os.arch")
     val arch = when {
-        "arm" in archProperty -> if ("64" in archProperty) "arm64" else "arm"
+        listOf("arm", "aarch").any { it in archProperty } -> if ("64" in archProperty) "arm64" else "arm"
         "amd64" in archProperty || "x86_64" in archProperty -> "amd64"
         "386" in archProperty || "x86" in archProperty -> "386"
         else -> error("OS architecture \"$archProperty\" not supported by Terraform plugin")
