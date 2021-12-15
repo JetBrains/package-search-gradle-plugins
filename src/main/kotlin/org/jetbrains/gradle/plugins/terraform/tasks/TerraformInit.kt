@@ -7,13 +7,13 @@ import org.gradle.kotlin.dsl.property
 import org.gradle.kotlin.dsl.provideDelegate
 import org.gradle.kotlin.dsl.setValue
 import org.jetbrains.gradle.plugins.addAll
-import org.jetbrains.gradle.plugins.propertyWithDefault
+import org.jetbrains.gradle.plugins.property
 import java.io.File
 
 open class TerraformInit : AbstractTerraformExec() {
 
     @get:Input
-    var useBackend by project.objects.propertyWithDefault(true)
+    var useBackend by project.objects.property(true)
 
     @get:OutputDirectory
     override var dataDir by project.objects.property<File>()

@@ -2,6 +2,7 @@ package org.jetbrains.gradle.plugins.docker
 
 import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
+import org.jetbrains.gradle.plugins.applyAction
 
 class DockerRegistryContainer(
     private val container: NamedDomainObjectContainer<DockerRegistryCredentials>

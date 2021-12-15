@@ -8,7 +8,6 @@ import org.gradle.kotlin.dsl.getValue
 import org.gradle.kotlin.dsl.property
 import org.gradle.kotlin.dsl.provideDelegate
 import org.gradle.kotlin.dsl.setValue
-import org.jetbrains.gradle.plugins.appendLine
 import org.jetbrains.gradle.plugins.writeText
 import java.io.File
 

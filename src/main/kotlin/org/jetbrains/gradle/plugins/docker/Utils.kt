@@ -4,7 +4,6 @@ import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.core.DefaultDockerClientConfig
 import com.github.dockerjava.core.DockerClientImpl
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient
-import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskProvider
@@ -96,9 +95,4 @@ internal fun TaskContainerScope.registerDockerExecPush(
         dependsOn(dockerLogin)
         dockerPushSpec()
     }
-}
-
-fun <T : Any> T.applyAction(action: Action<T>): T {
-    action.execute(this)
-    return this
 }

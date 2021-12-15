@@ -14,12 +14,18 @@ liquibase {
     activities {
 
         all {
-            arguments["changeLogFile"] = "dbchangelog.postgresql.xml"
-            arguments["driver"] = "org.sqlite.JDBC"
+            properties {
+                changeLogFile.set("dbchangelog.postgresql.xml")
+                driver.set("org.sqlite.JDBC")
+            }
         }
 
-        register("local") {
-            arguments["url"] = "jdbc:sqlite:./db.sql"
+        register("dio") {
+            properties {
+                url.set("jdbc:sqlite:./db.sql")
+                password.set("banana")
+                username.set("mamma mia")
+            }
         }
     }
 }

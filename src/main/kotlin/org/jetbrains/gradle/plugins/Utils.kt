@@ -68,7 +68,14 @@ internal operator fun <V> SetProperty<V>.setValue(parent: Any?, property: KPrope
 internal operator fun <K, V> MapProperty<K, V>.getValue(parent: Any?, property: KProperty<*>): Map<K, V> =
     get()
 
+@Deprecated(
+    "",
+    ReplaceWith("property(initialValue)", "org.jetbrains.gradle.plugins.property")
+)
 internal inline fun <reified T> ObjectFactory.propertyWithDefault(initialValue: T) =
+    property<T>().apply { set(initialValue) }
+
+internal inline fun <reified T> ObjectFactory.property(initialValue: T) =
     property<T>().apply { set(initialValue) }
 
 internal fun String.suffixIfNot(s: String) =
@@ -116,15 +123,21 @@ internal operator fun <T> List<T>.component7() = this[6]
 
 internal fun File.writeText(action: StringBuilder.() -> Unit) = writeText(buildString(action))
 
-internal fun StringBuilder.appendLine(text: String) = append(text + "\n")
-
 internal fun <T : Any> NamedDomainObjectContainer<T>.maybeRegister(name: String, action: T.() -> Unit) =
     if (name in names) named(name).apply { configure(action) } else register(name, action)
 
 internal inline fun <reified T : Task> TaskContainer.maybeRegister(name: String, crossinline action: T.() -> Unit) =
     if (name in names) named(name).apply { configure { action(this as T) } } else register<T>(name) { action() }
 
+internal fun TaskContainer.maybeRegisterTask(name: String, action: Task.() -> Unit) =
+    if (name in names) named(name).apply { configure { action(this) } } else register(name) { action(this) }
+
 internal fun <T> Delegates.reference(initial: T) =
     observable(initial) { _, _, _ -> }
 
 internal inline fun <T> Delegates.reference(initial: () -> T) = reference(initial())
+
+internal fun <T : Any> T.applyAction(action: Action<T>): T {
+    action.execute(this)
+    return this
+}

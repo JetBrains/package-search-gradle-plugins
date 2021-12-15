@@ -6,7 +6,7 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.kotlin.dsl.*
 import org.gradle.process.ExecSpec
 import org.jetbrains.gradle.plugins.getValue
-import org.jetbrains.gradle.plugins.propertyWithDefault
+import org.jetbrains.gradle.plugins.property
 import org.jetbrains.gradle.plugins.setValue
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -22,7 +22,7 @@ open class TerraformOutput : AbstractTerraformExec() {
     override var dataDir by project.objects.property<File>()
 
     @get:Input
-    var format by project.objects.propertyWithDefault(Format.JSON)
+    var format by project.objects.property(Format.JSON)
 
     @get:Input
     var variables by project.objects.listProperty<String>()

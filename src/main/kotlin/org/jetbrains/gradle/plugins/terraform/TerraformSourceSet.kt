@@ -8,12 +8,8 @@ import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.invoke
 import org.gradle.kotlin.dsl.register
-import org.jetbrains.gradle.plugins.propertyWithDefault
-import org.jetbrains.gradle.plugins.terraform.tasks.TerraformApply
-import org.jetbrains.gradle.plugins.terraform.tasks.TerraformInit
-import org.jetbrains.gradle.plugins.terraform.tasks.TerraformOutput
-import org.jetbrains.gradle.plugins.terraform.tasks.TerraformPlan
-import org.jetbrains.gradle.plugins.terraform.tasks.TerraformShow
+import org.jetbrains.gradle.plugins.property
+import org.jetbrains.gradle.plugins.terraform.tasks.*
 import org.jetbrains.gradle.plugins.toCamelCase
 import java.io.File
 
@@ -22,7 +18,7 @@ open class TerraformSourceSet(private val project: Project, private val name: St
     val baseBuildDir
         get() = "${project.buildDir}/terraform/$name"
 
-    internal var applySpec = project.objects.propertyWithDefault(
+    internal var applySpec = project.objects.property(
         Spec<TerraformApply> {
             it.logger.error(
                 """
@@ -40,7 +36,7 @@ open class TerraformSourceSet(private val project: Project, private val name: St
         }
     )
 
-    internal var destroySpec = project.objects.propertyWithDefault(
+    internal var destroySpec = project.objects.property(
         Spec<TerraformApply> {
             it.logger.error(
                 """
@@ -214,7 +210,11 @@ open class TerraformSourceSet(private val project: Project, private val name: St
      */
     fun outputVariable(vararg names: String, action: Action<TerraformOutput> = Action {}) =
         project.tasks.register<TerraformOutput>(
-            "terraform${name.toCamelCase().capitalize()}Output${names.joinToString("") { it.toCamelCase().capitalize() }}"
+            "terraform${name.toCamelCase().capitalize()}Output${
+                names.joinToString("") {
+                    it.toCamelCase().capitalize()
+                }
+            }"
         ) {
             variables = names.toList()
             action(this)

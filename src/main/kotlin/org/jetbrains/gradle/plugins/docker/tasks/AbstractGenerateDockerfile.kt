@@ -6,7 +6,7 @@ import org.gradle.kotlin.dsl.getValue
 import org.gradle.kotlin.dsl.provideDelegate
 import org.gradle.kotlin.dsl.setValue
 import org.jetbrains.gradle.plugins.docker.DockerPlugin
-import org.jetbrains.gradle.plugins.propertyWithDefault
+import org.jetbrains.gradle.plugins.property
 import java.io.File
 
 abstract class AbstractGenerateDockerfile : DefaultTask() {
@@ -17,6 +17,6 @@ abstract class AbstractGenerateDockerfile : DefaultTask() {
 
     @get:OutputFile
     var outputDockerfile: File by project.objects
-        .propertyWithDefault(project.run { file("$buildDir/dockerfiles/Dockerfile") })
+        .property(project.run { file("$buildDir/dockerfiles/Dockerfile") })
 
 }
