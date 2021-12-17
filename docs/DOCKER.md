@@ -73,7 +73,7 @@ docker {
             }
             buildArgs = mapOf("MY_ENV_VAR" to System.getenv("MY_ENV_VAR"))
             imageName = "myProject"
-            imaveVersion = project.version.toString()
+            imageVersion = project.version.toString()
         }
         create("other-image") {
             // image name defaults to otherImage
