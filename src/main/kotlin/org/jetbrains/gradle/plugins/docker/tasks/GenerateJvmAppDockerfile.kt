@@ -18,7 +18,7 @@ open class GenerateJvmAppDockerfile : AbstractGenerateDockerfile() {
         COPY bin /%%%APP_NAME%%%/bin
         COPY lib /%%%APP_NAME%%%/lib
 
-        CMD ["/%%%APP_NAME%%%/bin/%%%APP_NAME%%%"]
+        ENTRYPOINT ["/%%%APP_NAME%%%/bin/%%%APP_NAME%%%"]
     """.trimIndent()
     }
 
