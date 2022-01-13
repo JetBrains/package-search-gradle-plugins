@@ -6,6 +6,7 @@ import com.github.dockerjava.core.DockerClientImpl
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.TaskContainerScope
 import org.gradle.kotlin.dsl.register
@@ -69,11 +70,16 @@ internal fun TaskContainerScope.registerDockerPush(
     dockerImageBuild: TaskProvider<out Task>,
     repo: DockerRegistryCredentials,
     imageData: DockerImage,
-    remoteConfig: DockerExtension.Remote
+    remoteConfig: DockerExtension.Remote,
+    showLogs: Boolean
 ) = register<DockerPush>(dockerPushTaskName) {
     dependsOn(dockerImageBuild)
     imageTag = repo.imageNamePrefix.suffixIfNot("/") + imageData.imageNameWithTag
     client = project.buildDockerHttpClient(repo, remoteConfig)
+    if (!showLogs) {
+        logging.captureStandardOutput(LogLevel.INFO)
+        logging.captureStandardError(LogLevel.INFO)
+    }
 }
 
 internal fun TaskContainerScope.registerDockerExecPush(
@@ -81,7 +87,8 @@ internal fun TaskContainerScope.registerDockerExecPush(
     repo: DockerRegistryCredentials,
     dockerPushTaskName: String,
     dockerPushSpec: DockerPushSpec.() -> Unit,
-    rootProject: Project
+    rootProject: Project,
+    showLogs: Boolean
 ): TaskProvider<DockerExecPush> {
     val dockerLoginTaskName = "docker${repoName}Login"
     val dockerLogin =
@@ -94,5 +101,9 @@ internal fun TaskContainerScope.registerDockerExecPush(
     return register<DockerExecPush>(dockerPushTaskName) {
         dependsOn(dockerLogin)
         dockerPushSpec()
+        if (!showLogs) {
+            logging.captureStandardOutput(LogLevel.INFO)
+            logging.captureStandardError(LogLevel.INFO)
+        }
     }
 }

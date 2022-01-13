@@ -50,6 +50,8 @@ docker {
     if (System.getenv("USE_DOCKER_REST") == "true")
         useDockerRestApi()
 
+    showLogs = true
+
     registries {
 
         val username = System.getenv("CONTAINER_REGISTRY_USERNAME")

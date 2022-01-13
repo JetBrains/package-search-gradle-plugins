@@ -3,6 +3,7 @@ package org.jetbrains.gradle.plugins.docker
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.logging.LogLevel
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.TaskProvider
@@ -77,6 +78,10 @@ open class DockerPlugin : Plugin<Project> {
                             }
                             contextFolder = dockerImagePrepare.get().destinationDir
                             buildArgs = imageData.buildArgs
+                            if (!dockerExtension.showLogs) {
+                                logging.captureStandardOutput(LogLevel.INFO)
+                                logging.captureStandardError(LogLevel.INFO)
+                            }
                             imageData.tasksCustomizationContainer.buildTaskActions.executeAllOn(this)
                         }
                         val dockerImageBuild: TaskProvider<out Task> =
@@ -97,18 +102,20 @@ open class DockerPlugin : Plugin<Project> {
                             val dockerImagePush: Provider<out DockerPushSpec> =
                                 dockerExtension.remoteConfigBuilder?.let { remoteConfig ->
                                     registerDockerPush(
-                                        dockerPushTaskName,
-                                        dockerImageBuild,
-                                        repo,
-                                        imageData,
-                                        remoteConfig
+                                        dockerPushTaskName = dockerPushTaskName,
+                                        dockerImageBuild = dockerImageBuild,
+                                        repo = repo,
+                                        imageData = imageData,
+                                        remoteConfig = remoteConfig,
+                                        showLogs = dockerExtension.showLogs
                                     )
                                 } ?: registerDockerExecPush(
-                                    repoName,
-                                    repo,
-                                    dockerPushTaskName,
-                                    dockerPushSpec,
-                                    rootProject
+                                    repoName = repoName,
+                                    repo = repo,
+                                    dockerPushTaskName = dockerPushTaskName,
+                                    dockerPushSpec = dockerPushSpec,
+                                    rootProject = rootProject,
+                                    showLogs = dockerExtension.showLogs
                                 )
                             dockerPush.dependsOn(dockerImagePush)
                         }

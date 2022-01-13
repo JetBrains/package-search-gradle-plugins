@@ -42,6 +42,8 @@ abstract class DockerExtension(
         }
     }
 
+    var showLogs = false
+
     fun registries(action: Action<DockerRegistryContainer>) {
         action.execute(registries)
     }

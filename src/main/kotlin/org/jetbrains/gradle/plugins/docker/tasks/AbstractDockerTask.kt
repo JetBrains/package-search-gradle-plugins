@@ -2,7 +2,6 @@ package org.jetbrains.gradle.plugins.docker.tasks
 
 import com.github.dockerjava.api.DockerClient
 import org.gradle.api.DefaultTask
-import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.Input
 import org.gradle.kotlin.dsl.getValue
 import org.gradle.kotlin.dsl.property
@@ -14,7 +13,7 @@ abstract class AbstractDockerTask : DefaultTask() {
 
     init {
         group = DockerPlugin.TASK_GROUP
-        logging.captureStandardOutput(LogLevel.INFO)
+//        logging.captureStandardOutput(LogLevel.INFO)
     }
 
     @get:Input
