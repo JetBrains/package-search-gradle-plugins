@@ -1,4 +1,4 @@
-import java.util.Properties
+import java.util.*
 
 plugins {
     `kotlin-dsl`
@@ -47,8 +47,9 @@ kotlin {
 }
 
 java {
-    targetCompatibility = JavaVersion.VERSION_1_8
-    sourceCompatibility = JavaVersion.VERSION_1_8
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(8))
+    }
 }
 
 pluginBundle {
