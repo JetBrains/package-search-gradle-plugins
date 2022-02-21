@@ -289,6 +289,7 @@ internal class TerraformTasksContainer private constructor(
         }
 
         tfApply {
+            finalizedBy(syncStateFile)
             attachSourceSet(sourceSet)
             configureApply(
                 tfPlan,
@@ -298,6 +299,7 @@ internal class TerraformTasksContainer private constructor(
             )
             if (terraformExtension.showApplyOutputInConsole)
                 logging.captureStandardOutput(LogLevel.LIFECYCLE)
+
         }
 
         sourceSet.outputTasks.configureEach {
@@ -323,6 +325,7 @@ internal class TerraformTasksContainer private constructor(
             outputs.upToDateWhen { runtimeStateFile.exists() }
             attachSourceSet(sourceSet)
             dependsOn(tfInit)
+            finalizedBy(syncStateFile)
             outputPlanFile = sourceSet.outputDestroyBinaryPlan
             isDestroy = true
             variables = sourceSet.planVariables
