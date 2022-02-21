@@ -69,3 +69,8 @@ locals {
 module "aDir" {
   source = modules.org.jetbrains.gradle.project-a
 }
+
+variable "example" {
+  type = string
+  # default wil be "ciao" as declared in the build script
+}
