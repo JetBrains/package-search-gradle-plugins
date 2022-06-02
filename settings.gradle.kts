@@ -14,6 +14,12 @@ pluginManagement {
     }
 }
 
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+}
+
 plugins {
     `gradle-enterprise`
 }

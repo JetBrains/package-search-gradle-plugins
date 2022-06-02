@@ -1,4 +1,4 @@
-import java.util.*
+import java.util.Properties
 
 plugins {
     `kotlin-dsl`
@@ -10,16 +10,11 @@ plugins {
 
 val localProperties = file("local.properties").takeIf { it.exists() }
 
-allprojects {
-    group = "org.jetbrains.gradle"
-    version = System.getenv("GITHUB_REF")?.substringAfterLast("/") ?: "0.0.1"
+group = "org.jetbrains.gradle"
+version = System.getenv("GITHUB_REF")?.substringAfterLast("/") ?: "0.0.1"
 
-    localProperties?.let { extra.setAll(Properties(it)) }
+localProperties?.let { extra.setAll(Properties(it)) }
 
-    repositories {
-        mavenCentral()
-    }
-}
 
 dependencies {
     val dockerJavaVersion: String by project
