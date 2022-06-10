@@ -2,7 +2,7 @@
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
-rootProject.name = "jetbrains-gradle-plugins"
+rootProject.name = "package-search-gradle-plugins"
 
 pluginManagement {
     plugins {
