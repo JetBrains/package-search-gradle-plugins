@@ -47,7 +47,7 @@ jobs:
 
       # liquibase tests
       - name: Liquibase test
-        uses: gradle/gradle-build-action@v3
+        uses: gradle/gradle-build-action@v2
         id: liquibase
         if: ${{ always() }}
         with:
@@ -57,7 +57,7 @@ jobs:
 
       # terraform tests
       - name: Terraform test
-        uses: gradle/gradle-build-action@v3
+        uses: gradle/gradle-build-action@v2
         if: ${{ always() }}
         id: terraform
         with:
