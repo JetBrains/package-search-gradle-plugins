@@ -6,16 +6,23 @@ import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Plugin
 import org.gradle.api.Task
+import org.gradle.api.internal.resources.DefaultResourceHandler
+import org.gradle.api.internal.resources.ResourceResolver
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.SetProperty
+import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.kotlin.dsl.invoke
 import org.gradle.kotlin.dsl.property
 import org.gradle.kotlin.dsl.register
+import org.jetbrains.gradle.plugins.upx.UpxSupportedOperatingSystems
+import org.jetbrains.gradle.plugins.upx.XZArchiver
+import org.tukaani.xz.SeekableFileInputStream
+import org.tukaani.xz.SeekableXZInputStream
 import java.io.File
 import java.io.OutputStream
 import kotlin.properties.Delegates
@@ -41,30 +48,24 @@ internal fun <K> Iterable<Action<K>>.executeAllOn(context: K) =
 internal fun <E> MutableCollection<E>.addAll(vararg elements: E) =
     elements.forEach { add(it) }
 
-@Suppress("UnstableApiUsage")
 internal operator fun <K> ListProperty<K>.setValue(parent: Any?, property: KProperty<*>, value: List<K>) {
     set(value)
 }
 
-@Suppress("UnstableApiUsage")
 internal operator fun <K> ListProperty<K>.getValue(parent: Any?, property: KProperty<*>): List<K> =
     get()
 
-@Suppress("UnstableApiUsage")
 internal operator fun <K> SetProperty<K>.getValue(parent: Any?, property: KProperty<*>): Set<K> =
     get()
 
-@Suppress("UnstableApiUsage")
 internal operator fun <K, V> MapProperty<K, V>.setValue(parent: Any?, property: KProperty<*>, value: Map<K, V>) {
     set(value)
 }
 
-@Suppress("UnstableApiUsage")
 internal operator fun <V> SetProperty<V>.setValue(parent: Any?, property: KProperty<*>, value: Set<V>) {
     set(value)
 }
 
-@Suppress("UnstableApiUsage")
 internal operator fun <K, V> MapProperty<K, V>.getValue(parent: Any?, property: KProperty<*>): Map<K, V> =
     get()
 
@@ -140,4 +141,27 @@ internal inline fun <T> Delegates.reference(initial: () -> T) = reference(initia
 internal fun <T : Any> T.applyAction(action: Action<T>): T {
     action.execute(this)
     return this
+}
+
+// for whatever reason the stdlib buildList is not available wtf
+fun <T> buildList(builder: MutableList<T>.() -> Unit) =
+    mutableListOf<T>().apply(builder).toList()
+
+fun buildUpxFileName(version: String, platform: UpxSupportedOperatingSystems) =
+    "upx-$version-${platform.fileSuffix}.${platform.extension}"
+
+fun buildUpxLink(version: String, platform: UpxSupportedOperatingSystems) =
+    "https://github.com/upx/upx/releases/download/v$version/${buildUpxFileName(version, platform)}"
+
+fun File.seekable() = SeekableFileInputStream(this)
+
+fun SeekableFileInputStream.lzma2() = SeekableXZInputStream(this)
+
+fun ResourceHandler.xz(path: Any): XZArchiver {
+    val resourceResolverField = DefaultResourceHandler::class.java.getDeclaredField("resourceResolver")
+    resourceResolverField.isAccessible = true
+    val resourceResolver = resourceResolverField.get(this) as ResourceResolver
+    val resource = resourceResolver.resolveResource(path)
+    resourceResolverField.isAccessible = false
+    return XZArchiver(resource)
 }

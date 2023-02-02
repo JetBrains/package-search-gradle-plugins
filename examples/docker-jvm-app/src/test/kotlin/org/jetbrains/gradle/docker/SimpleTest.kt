@@ -1,6 +1,7 @@
 package org.jetbrains.gradle.docker
 
-import io.ktor.application.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
 import kotlin.test.Test
@@ -10,11 +11,15 @@ class SimpleTest {
 
     @Test
     fun testGetEmptyRoute() {
-        withTestApplication(Application::simpleModule) {
-            handleRequest(HttpMethod.Get, "").apply {
-                assertEquals(HttpStatusCode.OK, response.status())
-                assertEquals("Hello World!", response.content)
+        testApplication {
+            application {
+                simpleModule()
             }
+
+            val response = client.get("")
+
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("Hello World!", response.bodyAsText())
         }
     }
 }

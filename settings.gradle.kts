@@ -6,7 +6,7 @@ rootProject.name = "package-search-gradle-plugins"
 
 pluginManagement {
     plugins {
-        val kotlinVersion: String by settings
+        val kotlinVersion = "1.7.10"
         val gradlePublishPluginVersion: String by settings
         kotlin("jvm") version kotlinVersion
         kotlin("plugin.serialization") version kotlinVersion

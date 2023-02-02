@@ -5,7 +5,6 @@ plugins {
     `maven-publish`
     id("com.gradle.plugin-publish")
     kotlin("plugin.serialization")
-    kotlin("jvm")
 }
 
 val localProperties = file("local.properties").takeIf { it.exists() }
@@ -19,7 +18,12 @@ localProperties?.let { extra.setAll(Properties(it)) }
 dependencies {
     val dockerJavaVersion: String by project
     val serializationVersion: String by project
+    val xzVersion: String by project
+    val graalvmVersion: String by project
+
+    api("org.tukaani:xz:$xzVersion")
     api("com.github.docker-java:docker-java:$dockerJavaVersion")
+    implementation("org.graalvm.buildtools:native-gradle-plugin:$graalvmVersion")
     api("com.github.docker-java:docker-java-transport-httpclient5:$dockerJavaVersion")
     api("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion")
     api(kotlin("reflect"))
@@ -31,6 +35,7 @@ kotlin {
         compilations.all {
             kotlinOptions {
                 languageVersion = "1.5"
+                jvmTarget = "11"
             }
         }
     }
@@ -42,9 +47,8 @@ kotlin {
 }
 
 java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(8))
-    }
+    targetCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_11
 }
 
 pluginBundle {
@@ -72,6 +76,12 @@ gradlePlugin {
             displayName = "JetBrains Liquibase Plugin"
             description = "Run migrations from Gradle using the Liquibase runtime."
             implementationClass = "org.jetbrains.gradle.plugins.liquibase.LiquibasePlugin"
+        }
+        create("upxPlugin") {
+            id = "org.jetbrains.gradle.upx"
+            displayName = "JetBrains UPX Plugin"
+            description = "Compress your native executables usin UPX"
+            implementationClass = "org.jetbrains.gradle.plugins.upx.UpxPlugin"
         }
     }
 }

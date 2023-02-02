@@ -1,6 +1,6 @@
 package org.jetbrains.gradle.docker
 
-import io.ktor.application.*
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import kotlinx.coroutines.CoroutineScope
 import kotlin.coroutines.CoroutineContext
