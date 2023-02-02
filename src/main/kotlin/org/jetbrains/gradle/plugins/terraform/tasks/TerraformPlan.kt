@@ -1,6 +1,3 @@
-@file:OptIn(ExperimentalStdlibApi::class)
-@file:Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
-
 package org.jetbrains.gradle.plugins.terraform.tasks
 
 import org.gradle.api.tasks.*
