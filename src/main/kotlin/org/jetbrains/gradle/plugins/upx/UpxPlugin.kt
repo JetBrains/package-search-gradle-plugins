@@ -16,7 +16,7 @@ import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 
-class UpxGradlePlugin : Plugin<Project> {
+class UpxPlugin : Plugin<Project> {
 
     open class Extension(
         private val name: String,
