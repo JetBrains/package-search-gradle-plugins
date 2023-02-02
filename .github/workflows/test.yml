@@ -10,8 +10,8 @@ jobs:
     name: ${{ matrix.os }}, Java ${{ matrix.java-version }}, Gradle ${{ matrix.gradle-version }}
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-java@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v3
         with:
           distribution: 'adopt'
           java-version: ${{ matrix.java-version }}
@@ -47,7 +47,7 @@ jobs:
 
       # liquibase tests
       - name: Liquibase test
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
         id: liquibase
         if: ${{ always() }}
         with:
@@ -57,7 +57,7 @@ jobs:
 
       # terraform tests
       - name: Terraform test
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
         if: ${{ always() }}
         id: terraform
         with:
