@@ -13,7 +13,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 suspend fun main() {
-    val client = HttpClient(Apache) {
+    val client = HttpClient(CIO) {
         install(ContentNegotiation) {
             json()
         }
