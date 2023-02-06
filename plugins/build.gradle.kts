@@ -2,7 +2,6 @@ import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.PropertySpec
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import java.util.Properties
 
 buildscript {
     dependencies {
@@ -14,6 +13,7 @@ plugins {
     `kotlin-dsl`
     `maven-publish`
     alias(libs.plugins.gradle.publish)
+    kotlin("plugin.serialization") version "1.7.10"
 }
 
 group = "org.jetbrains.gradle"
