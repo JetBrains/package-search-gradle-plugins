@@ -4,8 +4,10 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 rootProject.name = "package-search-gradle-plugins"
 
-pluginManagement {
-    includeBuild("./plugins")
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
 }
 
 dependencyResolutionManagement {
@@ -14,20 +16,10 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("libs") {
-            from(files("dependencies.toml"))
+            from(files("../dependencies.toml"))
         }
     }
 }
-
-include(
-    ":examples:docker-jvm-app",
-    ":examples:liquibase",
-    ":examples:terraform",
-    ":examples:terraform:project-a",
-    ":examples:terraform:project-b",
-    ":examples:terraform:project-c",
-    ":examples:upx"
-)
 
 plugins {
     `gradle-enterprise`

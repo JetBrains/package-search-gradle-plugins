@@ -1,0 +1,39 @@
+[versions]
+docker-java = "3.2.14"
+graalvm = "0.9.19"
+gradle-publish = "1.0.0"
+junit = "5.9.2"
+kotlin = "1.8.0"
+kotlinx-serialization = "1.5.0-RC"
+ktor = "2.2.3"
+liquibase = "4.19.0"
+logback = "1.4.5"
+sqlite-driver = "3.40.0.0"
+xz = "1.9"
+kotlinpoet = "1.12.0"
+
+[libraries]
+graalvm-native-gradle-plugin = { module = "org.graalvm.buildtools:native-gradle-plugin", version.ref = "graalvm" }
+docker-java = { module = "com.github.docker-java:docker-java", version.ref = "docker-java" }
+docker-java-transport-httpclient5 = { module = "com.github.docker-java:docker-java-transport-httpclient5", version.ref = "docker-java" }
+kotlinpoet = { module = "com.squareup:kotlinpoet", version.ref = "kotlinpoet" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
+ktor-client-apache = { module = "io.ktor:ktor-client-apache", version.ref = "ktor" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+ktor-server-cio = { module = "io.ktor:ktor-server-cio", version.ref = "ktor" }
+ktor-server-test-host = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
+liquibase-core = { module = "org.liquibase:liquibase-core", version.ref = "liquibase" }
+logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
+junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
+junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit" }
+sqlite-jdbc = { module = " org.xerial:sqlite-jdbc", version.ref = "sqlite-driver" }
+tukaani-xz = { module = "org.tukaani:xz", version.ref = "xz" }
+
+[plugins]
+gradle-publish = { id = "com.gradle.plugin-publish", version.ref = "gradle-publish" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-plugin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+graalvm-buildtools-native = { id = "org.graalvm.buildtools.native", version.ref = "graalvm" }

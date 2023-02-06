@@ -37,5 +37,5 @@ publishing {
 }
 
 dependencies {
-    api(projects.terraform.projectC)
+    api(projects.examples.terraform.projectC)
 }

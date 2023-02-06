@@ -1,5 +1,8 @@
 package org.jetbrains.gradle.plugins.upx
 
+import org.graalvm.buildtools.gradle.NativeImagePlugin
+import org.graalvm.buildtools.gradle.NativeImagePlugin.NATIVE_COMPILE_TASK_NAME
+import org.graalvm.buildtools.gradle.dsl.GraalVMExtension
 import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask
 import org.gradle.api.Named
 import org.gradle.api.Plugin
@@ -70,11 +73,23 @@ class UpxPlugin : Plugin<Project> {
             into("$buildDir/upx/exec")
         }
         plugins.withId("org.graalvm.buildtools.native") {
-            tasks.withType<BuildNativeImageTask> {
-                tasks.register<UpxTask>("compress${name.capitalize()}") {
-                    inputExecutable.set(outputFile)
+            val graalvm = extensions.getByType<GraalVMExtension>()
+            graalvm.binaries.all {
+                val buildNativeImageTaskName =
+                    if ("main" == name) NATIVE_COMPILE_TASK_NAME else "$name${NATIVE_COMPILE_TASK_NAME.capitalize()}"
+                tasks.register<UpxTask>("compress${buildNativeImageTaskName.capitalize()}") {
+                    val buildNativeImageTask = tasks.named<BuildNativeImageTask>(buildNativeImageTaskName)
+                    dependsOn(buildNativeImageTask)
+                    inputExecutable.convention(buildNativeImageTask.map { it.outputFile.get() })
                 }
             }
+//            tasks.withType<BuildNativeImageTask> {
+//                val me = this
+//                tasks.register("compress${name.capitalize()}") {
+//                    dependsOn(this)
+//
+//                }
+//            }
         }
     }
 }

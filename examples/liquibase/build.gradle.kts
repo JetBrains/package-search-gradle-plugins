@@ -2,12 +2,9 @@ plugins {
     id("org.jetbrains.gradle.liquibase")
 }
 
-val liquibaseVersion: String by extra
-val sqliteDriversVersion: String by extra
-
 dependencies {
-    liquibaseRuntime("org.liquibase:liquibase-core:$liquibaseVersion")
-    liquibaseRuntime("org.xerial:sqlite-jdbc:$sqliteDriversVersion")
+    liquibaseRuntime(libs.liquibase.core)
+    liquibaseRuntime(libs.sqlite.jdbc)
 }
 
 liquibase {

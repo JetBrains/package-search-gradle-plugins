@@ -1,9 +1,9 @@
-import org.jetbrains.gradle.plugins.docker.JvmBaseImages
+//import org.jetbrains.gradle.plugins.docker.JvmBaseImages
 
 plugins {
-    kotlin("jvm")
-    id("org.jetbrains.gradle.docker")
+    alias(libs.plugins.kotlin.jvm)
     application
+    id("org.jetbrains.gradle.docker")
 }
 
 kotlin {
@@ -26,18 +26,13 @@ application {
     mainClass.set("org.jetbrains.gradle.docker.MainKt")
 }
 
-val ktorVersion: String by extra
-val logbackVersion: String by extra
-val junitVersion: String by extra
 
 dependencies {
-
-
-    implementation("io.ktor:ktor-server-cio:$ktorVersion")
-    implementation("ch.qos.logback:logback-classic:$logbackVersion")
-    testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
+    implementation(libs.ktor.server.cio)
+    implementation(libs.logback.classic)
+    testImplementation(libs.ktor.server.test.host)
     testImplementation(kotlin("test-junit5"))
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
+    testRuntimeOnly(libs.junit.jupiter.engine)
 }
 
 tasks {
@@ -74,7 +69,7 @@ docker {
     }
     images {
         dockerJvmApp {
-            setupJvmApp(JvmBaseImages.OpenJDK11Slim)
+            setupJvmApp(org.jetbrains.gradle.plugins.docker.JvmBaseImages.OpenJDK11Slim)
         }
     }
 }

@@ -2,6 +2,7 @@ package org.jetbrains.gradle.plugins.upx
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.*
+import org.gradle.internal.file.impl.DefaultFileMetadata.file
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.kotlin.dsl.*
 import java.io.Serializable
@@ -12,7 +13,7 @@ open class UpxTask : DefaultTask() {
         group = "upx"
         if ("unzipUpx" in project.tasks.names) dependsOn("unzipUpx")
         else throw error(
-            "the Upx Gradle Plugin has not been applied. " +
+            "The Upx Gradle Plugin has not been applied. " +
                     "Please apply the plugin before creating an UpxTask"
         )
     }
@@ -52,12 +53,10 @@ open class UpxTask : DefaultTask() {
     @get:OutputFile
     @get:Optional
     val outputExecutable = project.objects.fileProperty()
-        .apply {
-            convention(inputExecutable.flatMap {
-                project.layout.buildDirectory
-                    .file("upx/outputs/${it.asFile.nameWithoutExtension}.upx${it.asFile.extension}")
-            })
-        }
+        .convention(inputExecutable.flatMap {
+            project.layout.buildDirectory
+                .file("upx/outputs/${it.asFile.nameWithoutExtension}.upx${it.asFile.extension}")
+        })
 
     @get:Input
     var command = Command.COMPRESS
@@ -86,7 +85,7 @@ open class UpxTask : DefaultTask() {
         project.exec {
 
             executable = project.tasks
-                .named<UpxTask>("upxTask")
+                .named<Copy>("unzipUpx")
                 .get()
                 .outputs
                 .files
