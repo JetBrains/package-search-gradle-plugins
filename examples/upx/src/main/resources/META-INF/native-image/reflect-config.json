@@ -873,5 +873,13 @@
         "name": "_value"
       }
     ]
+  },
+  {
+    "name": "io.ktor.client.engine.apache.InterestControllerHolder",
+    "fields": [
+      {
+        "name": "interestController"
+      }
+    ]
   }
 ]

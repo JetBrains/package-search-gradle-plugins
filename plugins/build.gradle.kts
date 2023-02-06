@@ -83,7 +83,7 @@ gradlePlugin {
         create("upxPlugin") {
             id = "org.jetbrains.gradle.upx"
             displayName = "JetBrains UPX Plugin"
-            description = "Compress your native executables usin UPX"
+            description = "Compress your native executables using UPX"
             implementationClass = "org.jetbrains.gradle.plugins.upx.UpxPlugin"
         }
     }
@@ -107,6 +107,8 @@ val generatePluginIds by tasks.registering {
         fileBuilder.build().writeTo(generatedDir)
     }
 }
+
+
 
 tasks.withType<KotlinCompile> {
     dependsOn(generatePluginIds)

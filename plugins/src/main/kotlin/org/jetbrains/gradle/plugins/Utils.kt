@@ -18,13 +18,13 @@ import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.kotlin.dsl.invoke
 import org.gradle.kotlin.dsl.property
-import org.gradle.kotlin.dsl.register
 import org.jetbrains.gradle.plugins.upx.UpxSupportedOperatingSystems
 import org.jetbrains.gradle.plugins.upx.XZArchiver
 import org.tukaani.xz.SeekableFileInputStream
 import org.tukaani.xz.SeekableXZInputStream
 import java.io.File
 import java.io.OutputStream
+import java.net.URI
 import kotlin.properties.Delegates
 import kotlin.properties.ReadOnlyProperty
 import kotlin.properties.ReadWriteProperty
@@ -69,13 +69,6 @@ internal operator fun <V> SetProperty<V>.setValue(parent: Any?, property: KPrope
 internal operator fun <K, V> MapProperty<K, V>.getValue(parent: Any?, property: KProperty<*>): Map<K, V> =
     get()
 
-@Deprecated(
-    "",
-    ReplaceWith("property(initialValue)", "org.jetbrains.gradle.plugins.property")
-)
-internal inline fun <reified T> ObjectFactory.propertyWithDefault(initialValue: T) =
-    property<T>().apply { set(initialValue) }
-
 internal inline fun <reified T> ObjectFactory.property(initialValue: T) =
     property<T>().apply { set(initialValue) }
 
@@ -113,9 +106,6 @@ fun OutputStream(action: (Byte) -> Unit) = object : OutputStream() {
 }
 
 fun NullOutputStream() = OutputStream { }
-internal val <T : Any> NamedDomainObjectContainer<T>.maybeCreating
-    get() = ReadOnlyProperty<Any?, T> { _, property -> maybeCreate(property.name) }
-
 internal fun <T : Any> NamedDomainObjectContainer<T>.maybeCreating(action: T.() -> Unit) =
     ReadOnlyProperty<Any?, T> { _, property -> maybeCreate(property.name).apply(action) }
 
@@ -127,8 +117,6 @@ internal fun File.writeText(action: StringBuilder.() -> Unit) = writeText(buildS
 internal fun <T : Any> NamedDomainObjectContainer<T>.maybeRegister(name: String, action: T.() -> Unit) =
     if (name in names) named(name).apply { configure(action) } else register(name, action)
 
-internal inline fun <reified T : Task> TaskContainer.maybeRegister(name: String, crossinline action: T.() -> Unit) =
-    if (name in names) named(name).apply { configure { action(this as T) } } else register<T>(name) { action() }
 
 internal fun TaskContainer.maybeRegisterTask(name: String, action: Task.() -> Unit) =
     if (name in names) named(name).apply { configure { action(this) } } else register(name) { action(this) }
@@ -150,8 +138,8 @@ fun <T> buildList(builder: MutableList<T>.() -> Unit) =
 fun buildUpxFileName(version: String, platform: UpxSupportedOperatingSystems) =
     "upx-$version-${platform.fileSuffix}.${platform.extension}"
 
-fun buildUpxLink(version: String, platform: UpxSupportedOperatingSystems) =
-    "https://github.com/upx/upx/releases/download/v$version/${buildUpxFileName(version, platform)}"
+fun buildUpxUri(version: String, platform: UpxSupportedOperatingSystems) =
+    URI("https://github.com/upx/upx/releases/download/v$version/${buildUpxFileName(version, platform)}")
 
 fun File.seekable() = SeekableFileInputStream(this)
 
