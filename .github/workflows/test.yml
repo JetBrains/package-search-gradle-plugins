@@ -27,7 +27,6 @@ jobs:
           CONTAINER_REGISTRY_USERNAME: ${{secrets.CONTAINER_REGISTRY_USERNAME}}
         with:
           arguments: dockerPush
-          build-root-directory: examples
           gradle-version: ${{ matrix.gradle-version }}
 
       - name: Docker REST API test
@@ -42,7 +41,6 @@ jobs:
           CONTAINER_REGISTRY_USERNAME: ${{secrets.CONTAINER_REGISTRY_USERNAME}}
         with:
           arguments: dockerPush
-          build-root-directory: examples
           gradle-version: ${{ matrix.gradle-version }}
 
       # liquibase tests
@@ -52,7 +50,6 @@ jobs:
         if: ${{ always() }}
         with:
           arguments: liquibaseUpdate
-          build-root-directory: examples
           gradle-version: ${{ matrix.gradle-version }}
 
       # terraform tests
@@ -62,5 +59,4 @@ jobs:
         id: terraform
         with:
           arguments: terraformInit
-          build-root-directory: examples
           gradle-version: ${{ matrix.gradle-version }}
