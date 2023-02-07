@@ -11,6 +11,10 @@ logback = "1.4.5"
 sqlite-driver = "3.40.0.0"
 xz = "1.9"
 kotlinpoet = "1.12.0"
+aws-lambda-java-runtime-interface-client = "2.2.0"
+aws-lambda-java-core = "1.2.2"
+aws-lambda-java-events = "3.11.0"
+kotlin-aws-lambda-runtime-client = "1.0.0"
 
 [libraries]
 graalvm-native-gradle-plugin = { module = "org.graalvm.buildtools:native-gradle-plugin", version.ref = "graalvm" }
@@ -21,6 +25,7 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
 ktor-client-apache = { module = "io.ktor:ktor-client-apache", version.ref = "ktor" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 ktor-server-cio = { module = "io.ktor:ktor-server-cio", version.ref = "ktor" }
 ktor-server-test-host = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
@@ -31,6 +36,10 @@ junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", vers
 junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit" }
 sqlite-jdbc = { module = " org.xerial:sqlite-jdbc", version.ref = "sqlite-driver" }
 tukaani-xz = { module = "org.tukaani:xz", version.ref = "xz" }
+aws-lambda-java-runtime-interface-client = { module = "com.amazonaws:aws-lambda-java-runtime-interface-client", version.ref = "aws-lambda-java-runtime-interface-client" }
+aws-lambda-java-core = { module = "com.amazonaws:aws-lambda-java-core", version.ref = "aws-lambda-java-core" }
+aws-lambda-java-events = { module = "com.amazonaws:aws-lambda-java-events", version.ref = "aws-lambda-java-events" }
+kotlin-aws-lambda-runtime-client = { module = "com.github.lamba92:kotlin-aws-lambda-runtime-client", version.ref = "kotlin-aws-lambda-runtime-client" }
 
 [plugins]
 gradle-publish = { id = "com.gradle.plugin-publish", version.ref = "gradle-publish" }

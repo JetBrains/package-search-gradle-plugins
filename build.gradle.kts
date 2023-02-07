@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.kotlin.jvm) apply false
+    alias(libs.plugins.graalvm.buildtools.native) apply false
 }
 
 allprojects {

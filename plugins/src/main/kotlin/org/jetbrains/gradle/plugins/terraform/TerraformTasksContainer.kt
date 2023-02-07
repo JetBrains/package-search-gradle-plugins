@@ -42,6 +42,7 @@ internal class TerraformTasksContainer private constructor(
     private val tfDestroy: TaskProvider<TerraformApply>,
     private val implementation: Configuration,
     private val lambdaConfiguration: Configuration,
+    private val runtimeConfiguration: Configuration,
     private val terraformExtension: TerraformExtension,
     private val sourceSet: TerraformSourceSet,
     private val project: Project
@@ -63,7 +64,8 @@ internal class TerraformTasksContainer private constructor(
             terraformDestroyShow: TaskProvider<Task>,
             terraformDestroyPlan: TaskProvider<Task>,
             terraformDestroy: TaskProvider<Task>,
-            softwareComponentFactory: SoftwareComponentFactory
+            softwareComponentFactory: SoftwareComponentFactory,
+            runtimeConfiguration: Configuration
         ): TerraformTasksContainer = with(project) {
             val taskName = sourceSet.name.capitalize()
             val terraformModuleMetadata =
@@ -121,7 +123,7 @@ internal class TerraformTasksContainer private constructor(
             return TerraformTasksContainer(
                 taskName, terraformModuleMetadata, terraformModuleZip, copyResFiles, copyLibrariesMetadataFiles,
                 createResFile, copyExecutionContext, syncLockFile, syncStateFile, tfInit, tfShow, tfPlan, tfApply,
-                tfDestroyShow, tfDestroyPlan, tfDestroy, implementation, lambdaConfiguration,
+                tfDestroyShow, tfDestroyPlan, tfDestroy, implementation, lambdaConfiguration, runtimeConfiguration,
                 terraformExtension, sourceSet, project
             )
         }
@@ -144,7 +146,10 @@ internal class TerraformTasksContainer private constructor(
                 into("resources")
             }
             if (sourceSet.addLambdasToResources) from(lambdaConfiguration) {
-                into("resources")
+                into("resources/lambdas")
+            }
+            if (sourceSet.addRuntimesToResources) from(runtimeConfiguration) {
+                into("resources/runtimes")
             }
         }
 
