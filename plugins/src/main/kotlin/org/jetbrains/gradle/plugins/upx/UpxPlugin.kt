@@ -6,16 +6,14 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.RelativePath
 import org.gradle.api.provider.Property
-import org.gradle.api.tasks.Copy
-import org.gradle.api.tasks.Exec
+import org.gradle.api.tasks.*
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.kotlin.dsl.*
-import org.jetbrains.gradle.plugins.buildUpxUri
+import org.jetbrains.gradle.plugins.DownloadTask
+import org.jetbrains.gradle.plugins.buildUpxUrl
 import org.jetbrains.gradle.plugins.xz
+import java.io.ByteArrayOutputStream
 import java.io.File
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
 
 @Suppress("unused")
 class UpxPlugin : Plugin<Project> {
@@ -36,35 +34,41 @@ class UpxPlugin : Plugin<Project> {
 
         val executableProvider = objects.property<File>()
 
+        if (OperatingSystem.current().isMacOsX)
+            executableProvider.convention(provider {
+                val stdout = ByteArrayOutputStream()
+                exec {
+                    standardOutput = stdout
+                    commandLine("whereis", "upx")
+                }
+                val upxPath = stdout.toString().lines()
+                    .first { it.startsWith("upx: ") }
+                    .removePrefix("upx: ")
+                    .split(" ")
+                    .first()
+                File(upxPath)
+            })
+
         val upxExtension = extensions.create<Extension>("upx", "upx", versionProperty, executableProvider)
 
-        val upxDownloadTask by tasks.registering {
+        val upxDownloadTask by tasks.registering(DownloadTask::class) {
             group = "upx"
-            val destinationFile = buildDir
-                .resolve("upx/downloads")
-                .resolve(if (OperatingSystem.current().isWindows) "upx.zip" else "upx.tar.xz")
-            inputs.property("version", versionProperty)
-            outputs.file(destinationFile)
-            onlyIf { !upxExtension.executableProvider.isPresent }
-            doFirst {
-                val platform = UpxSupportedOperatingSystems.current()
-                    ?: error(
-                        "Current OS \"${OperatingSystem.current()}\" is not supported." +
-                                "The Upx Gradle plugin will be disabled."
-                    )
-                val request = HttpRequest.newBuilder()
-                    .uri(buildUpxUri(versionProperty.get(), platform))
-                    .GET()
-                    .build()
-                val body = HttpClient.newBuilder()
-                    .followRedirects(HttpClient.Redirect.ALWAYS)
-                    .build()
-                    .send(request, HttpResponse.BodyHandlers.ofInputStream())
-                    .body()
-                destinationFile.outputStream()
-                    .use { it.write(body.readAllBytes()) }
-            }
+            outputFile.set(
+                buildDir
+                    .resolve("upx/downloads")
+                    .resolve(if (OperatingSystem.current().isWindows) "upx.zip" else "upx.tar.xz")
+            )
+            url.set(versionProperty.map {
+                buildUpxUrl(
+                    it, UpxSupportedOperatingSystems.current()
+                        ?: error(
+                            "Current OS \"${OperatingSystem.current()}\" is not supported." +
+                                    "The Upx Gradle plugin will be disabled."
+                        )
+                )
+            })
         }
+
         tasks.register<Copy>("unzipUpx") {
             dependsOn(upxDownloadTask)
             group = "upx"
@@ -82,7 +86,7 @@ class UpxPlugin : Plugin<Project> {
             tasks.withType<BuildNativeImageTask> nativeBuild@{
                 val compress = tasks.register<UpxTask>("compress${name.capitalize()}") {
                     dependsOn(this@nativeBuild)
-                    inputExecutable.set(outputFile)
+                    inputExecutable.set(outputDirectory.flatMap { it.file(executableName) })
                     doFirst {
                         val file = outputExecutable.get().asFile
                         if (file.exists()) file.delete()
@@ -91,9 +95,10 @@ class UpxPlugin : Plugin<Project> {
                 tasks.register<Exec>("runCompressed${name.capitalize()}") {
                     group = "application"
                     dependsOn(compress)
-                    doFirst { executable = compress.get().outputExecutable.get().asFile.absolutePath }
+                    executable = compress.get().outputExecutable.get().asFile.absolutePath
                 }
             }
         }
     }
 }
+

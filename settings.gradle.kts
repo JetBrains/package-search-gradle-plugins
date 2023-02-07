@@ -26,7 +26,8 @@ include(
     ":examples:terraform:project-a",
     ":examples:terraform:project-b",
     ":examples:terraform:project-c",
-    ":examples:upx"
+    ":examples:upx",
+    ":examples:aws-lambda-custom-runtime"
 )
 
 plugins {

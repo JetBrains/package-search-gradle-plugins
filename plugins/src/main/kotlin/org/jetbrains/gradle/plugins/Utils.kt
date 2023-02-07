@@ -138,8 +138,8 @@ fun <T> buildList(builder: MutableList<T>.() -> Unit) =
 fun buildUpxFileName(version: String, platform: UpxSupportedOperatingSystems) =
     "upx-$version-${platform.fileSuffix}.${platform.extension}"
 
-fun buildUpxUri(version: String, platform: UpxSupportedOperatingSystems) =
-    URI("https://github.com/upx/upx/releases/download/v$version/${buildUpxFileName(version, platform)}")
+fun buildUpxUrl(version: String, platform: UpxSupportedOperatingSystems) =
+    "https://github.com/upx/upx/releases/download/v$version/${buildUpxFileName(version, platform)}"
 
 fun File.seekable() = SeekableFileInputStream(this)
 

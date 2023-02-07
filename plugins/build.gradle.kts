@@ -86,6 +86,12 @@ gradlePlugin {
             description = "Compress your native executables using UPX"
             implementationClass = "org.jetbrains.gradle.plugins.upx.UpxPlugin"
         }
+        create("nativeRuntime") {
+            id = "org.jetbrains.gradle.native-runtime"
+            displayName = "JetBrains Aws Lambda Custom Native Runtime Plugin"
+            description = "Create a custom AWS Lambda runtime using GraalVM native-image and UPX"
+            implementationClass = "org.jetbrains.gradle.plugins.nativeruntime.AwsLambdaCustomNativeRuntimePlugin"
+        }
     }
 }
 
