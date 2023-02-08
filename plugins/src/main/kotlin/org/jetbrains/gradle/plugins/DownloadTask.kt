@@ -32,7 +32,10 @@ open class DownloadTask @Inject constructor(@Inject val objects: ObjectFactory) 
             .build()
             .send(request, HttpResponse.BodyHandlers.ofInputStream())
             .body()
-        outputFile.get().asFile.outputStream()
+        outputFile.get().asFile
+            .apply { parentFile.mkdirs() }
+            .apply { if (exists()) delete() }
+            .outputStream()
             .use { it.write(body.readAllBytes()) }
     }
 }

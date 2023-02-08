@@ -1,30 +1,36 @@
 package org.jetbrains.gradle.plugins.nativeruntime
 
+import org.graalvm.buildtools.gradle.NativeImagePlugin
 import org.graalvm.buildtools.gradle.dsl.GraalVMExtension
 import org.gradle.api.*
+import org.gradle.api.Named
+import org.gradle.api.artifacts.type.ArtifactTypeDefinition
+import org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFile
+import org.gradle.api.plugins.ApplicationPlugin
+import org.gradle.api.plugins.ExtensionAware
+import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.provider.Property
-import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.toolchain.*
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.gradle.plugins.DownloadTask
+import org.jetbrains.gradle.plugins.nativeruntime.metadata.GraalVMMetadataFiles
+import org.jetbrains.gradle.plugins.terraform.TerraformPlugin
 import org.jetbrains.gradle.plugins.upx.UpxPlugin
+import org.jetbrains.gradle.plugins.upx.UpxTask
 import java.nio.file.Files
-import java.nio.file.attribute.PosixFilePermission
 import java.nio.file.attribute.PosixFilePermission.*
 
 class AwsLambdaCustomNativeRuntimePlugin : Plugin<Project> {
 
-    open class Extension(
+    abstract class Extension(
         private val name: String,
         val rieEmulatorVersion: Property<String>,
-        val lambdas: NamedDomainObjectContainer<LambdaExecution>,
-        val awsRuntimeMainClass: Property<String>,
         val javaToolchainSpec: Property<Action<JavaToolchainSpec>>
-    ) : Named {
+    ) : Named, ExtensionAware {
         override fun getName() = name
 
         fun toolchain(action: Action<JavaToolchainSpec>) {
@@ -33,18 +39,36 @@ class AwsLambdaCustomNativeRuntimePlugin : Plugin<Project> {
 
     }
 
+    object Attributes {
+
+        const val ARTIFACT_TYPE = "aws-lambda-runtime"
+
+    }
+
     override fun apply(target: Project): Unit = with(target) {
         apply<UpxPlugin>()
-        apply(plugin = "org.graalvm.buildtools.native")
+        apply<JavaBasePlugin>()
+        apply<NativeImagePlugin>()
+
+        val graalVmExtension = extensions.getByType<GraalVMExtension>()
+        val sourcesSets = extensions.getByType<SourceSetContainer>()
+        val outgoingRuntimes by configurations.creating {
+            isCanBeResolved = true
+            isCanBeResolved = false
+            attributes {
+                attribute(ARTIFACT_TYPE_ATTRIBUTE, objects.named(Attributes.ARTIFACT_TYPE))
+            }
+        }
         val emulatorVersion = objects.property<String>()
             .convention("1.10")
-        val awsRuntimeMainClass = objects.property<String>()
-            .convention("com.amazonaws.services.lambda.runtime.api.client.AWSLambda")
+        val metadataDirectory = objects.directoryProperty()
+            .convention(layout.projectDirectory.dir("src/main/resources/META-INF/native-image"))
         val javaToolchainSpec = objects.property<Action<JavaToolchainSpec>>()
             .convention {
                 vendor.set(JvmVendorSpec.GRAAL_VM)
                 languageVersion.set(JavaLanguageVersion.of(Runtime.version().feature()))
             }
+
         val lambdasContainer = container {
             LambdaExecution(
                 name = it,
@@ -54,11 +78,10 @@ class AwsLambdaCustomNativeRuntimePlugin : Plugin<Project> {
             )
         }
 
-        extensions.create<Extension>(
-            "aws",
-            "aws", emulatorVersion,
-            lambdasContainer, awsRuntimeMainClass, javaToolchainSpec
-        )
+        lambdasContainer.create("main")
+
+        val nativeRuntimeExtension = extensions.create<Extension>("aws", "aws", emulatorVersion, javaToolchainSpec)
+        nativeRuntimeExtension.extensions.add("lambdas", lambdasContainer)
 
         val downloadLambdaRIE by tasks.registering(DownloadTask::class) {
             group = "aws"
@@ -74,8 +97,6 @@ class AwsLambdaCustomNativeRuntimePlugin : Plugin<Project> {
             }
         }
 
-        val graalVmExtension = extensions.findByType<GraalVMExtension>()!!
-        val sourcesSets = extensions.findByType<SourceSetContainer>()!!
         lambdasContainer.all {
             tasks.register("collect${name.capitalize()}Metadata") {
                 group = "aws"
@@ -85,8 +106,8 @@ class AwsLambdaCustomNativeRuntimePlugin : Plugin<Project> {
                 inputs.property("entryClass", entryClass)
                 doFirst {
                     exec {
-                        executable = downloadLambdaRIE.get().outputFile.get().absolutePath
-                        args = buildList {
+                        commandLine = buildList {
+                            add(downloadLambdaRIE.get().outputFile.get().absolutePath)
                             add(
                                 project.extensions
                                     .getByType<JavaToolchainService>()
@@ -106,12 +127,54 @@ class AwsLambdaCustomNativeRuntimePlugin : Plugin<Project> {
                             })
                             add("-cp")
                             add(runtimeClasspath.asPath)
-                            add(awsRuntimeMainClass.get())
                             add(entryClass.get())
                         }
-                        println(commandLine.joinToString("\n"))
                     }
                 }
+            }
+            if (name != "main") {
+                graalVmExtension.binaries.create(name) {
+                    classpath(sourcesSets["main"].runtimeClasspath)
+                    mainClass.set(entryClass)
+                    imageName.set(name)
+
+                    val compressTask = tasks.named<UpxTask>("compressNative${name.capitalize()}Compile")
+                    tasks.create("runLambda${name.capitalize()}") {
+                        dependsOn(downloadLambdaRIE, compressTask)
+                        group = "aws"
+                        doFirst {
+                            exec {
+                                commandLine = buildList {
+                                    add(downloadLambdaRIE.get().outputFile.get().absolutePath)
+                                    add(compressTask.get().outputExecutable.get().absolutePath)
+                                }
+                            }
+                        }
+                    }
+                }
+            } else graalVmExtension.binaries.named("main") {
+                if (!plugins.hasPlugin(ApplicationPlugin::class.java)) mainClass.set(entryClass)
+                classpath(sourcesSets["main"].runtimeClasspath)
+            }
+        }
+
+        tasks.register("mergeNativeAgentMetadata") {
+            group = "aws"
+            doFirst {
+                val inputDirs = lambdasContainer.map { it.outputMetadataDir.get().asFile }
+                    .plus(metadataDirectory.asFile.get())
+                    .filter { it.isDirectory }
+                GraalVMMetadataFiles.ALL
+                    .associateWith { merger ->
+                        inputDirs.mapNotNull { it.walkTopDown().firstOrNull { it.name == merger.fileName } }
+                    }
+                    .forEach { (merger, inputs) ->
+                        merger.merge(
+                            inputs,
+                            metadataDirectory.file(merger.fileName).get().asFile
+                                .also { it.parentFile.mkdirs() }
+                        )
+                    }
             }
         }
     }
@@ -141,5 +204,4 @@ fun buildRieUrl(version: String): String {
         else -> "aws-lambda-rie"
     }
     return "https://github.com/aws/aws-lambda-runtime-interface-emulator/releases/download/$versionString/$executableName"
-        .also { println(it) }
 }

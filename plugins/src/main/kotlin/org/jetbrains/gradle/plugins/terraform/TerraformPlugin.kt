@@ -3,13 +3,14 @@ package org.jetbrains.gradle.plugins.terraform
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.attributes.Attribute
+import org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE
 import org.gradle.api.attributes.Bundling
 import org.gradle.api.component.SoftwareComponentFactory
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.gradle.plugins.component6
 import org.jetbrains.gradle.plugins.component7
 import org.jetbrains.gradle.plugins.maybeCreating
+import org.jetbrains.gradle.plugins.nativeruntime.AwsLambdaCustomNativeRuntimePlugin.Attributes.ARTIFACT_TYPE
 import org.jetbrains.gradle.plugins.terraform.tasks.TerraformExtract
 import java.io.File
 import javax.inject.Inject
@@ -23,7 +24,6 @@ open class TerraformPlugin @Inject constructor(
         const val USAGE = "terraform"
         const val LIBRARY_ELEMENTS = "tf-zip-archive"
 
-        val SOURCE_SET_NAME_ATTRIBUTE: Attribute<String> = Attribute.of("terraform.sourceset.name", String::class.java)
     }
 
     companion object {
@@ -31,7 +31,6 @@ open class TerraformPlugin @Inject constructor(
         const val TERRAFORM_EXTRACT_TASK_NAME = "terraformExtract"
         const val TERRAFORM_EXTENSION_NAME = "terraform"
         const val TASK_GROUP = "terraform"
-
     }
 
     override fun apply(target: Project): Unit = with(target) {
@@ -43,6 +42,15 @@ open class TerraformPlugin @Inject constructor(
             isCanBeResolved = true
             attributes {
                 attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.SHADOWED))
+            }
+
+        }
+
+        val runtimes: Configuration by configurations.creating {
+            isCanBeConsumed = false
+            isCanBeResolved = true
+            attributes {
+                attribute(ARTIFACT_TYPE_ATTRIBUTE, objects.named(ARTIFACT_TYPE))
             }
         }
 
@@ -70,6 +78,7 @@ open class TerraformPlugin @Inject constructor(
                 api = api,
                 implementation = implementation,
                 lambdaConfiguration = lambda,
+                runtimeConfiguration = runtimes,
                 terraformExtract = terraformExtract,
                 terraformExtension = terraformExtension,
                 terraformInit = terraformInit,

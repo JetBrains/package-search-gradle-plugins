@@ -1,0 +1,108 @@
+[
+    {
+        "name": "io.ktor.utils.io.ClosedWriteChannelException",
+        "methods": [
+            {
+                "name": "<init>",
+                "parameterTypes": [
+                    "java.lang.String"
+                ]
+            }
+        ],
+        "allDeclaredFields": true,
+        "queryAllPublicConstructors": true
+    },
+    {
+        "name": "java.io.FilePermission"
+    },
+    {
+        "name": "java.lang.Exception",
+        "allDeclaredFields": true
+    },
+    {
+        "name": "java.lang.IllegalStateException",
+        "allDeclaredFields": true
+    },
+    {
+        "name": "java.lang.Object",
+        "allDeclaredFields": true
+    },
+    {
+        "name": "java.lang.RuntimeException",
+        "allDeclaredFields": true
+    },
+    {
+        "name": "java.lang.RuntimePermission"
+    },
+    {
+        "name": "java.lang.Throwable",
+        "allDeclaredFields": true
+    },
+    {
+        "name": "java.net.NetPermission"
+    },
+    {
+        "name": "java.net.SocketPermission"
+    },
+    {
+        "name": "java.net.StandardSocketOptions"
+    },
+    {
+        "name": "java.net.URLPermission",
+        "methods": [
+            {
+                "name": "<init>",
+                "parameterTypes": [
+                    "java.lang.String",
+                    "java.lang.String"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "java.security.AllPermission"
+    },
+    {
+        "name": "java.security.SecurityPermission"
+    },
+    {
+        "name": "java.util.PropertyPermission"
+    },
+    {
+        "name": "java.util.concurrent.CancellationException",
+        "methods": [
+            {
+                "name": "<init>",
+                "parameterTypes": [
+                    "java.lang.String"
+                ]
+            }
+        ],
+        "allDeclaredFields": true,
+        "queryAllPublicConstructors": true
+    },
+    {
+        "name": "kotlin.internal.jdk8.JDK8PlatformImplementations",
+        "methods": [
+            {
+                "name": "<init>"
+            }
+        ]
+    },
+    {
+        "name": "org.jetbrains.gradle.awslambdaruntime.HelloWorld",
+        "fields": [
+            {
+                "name": "Companion"
+            }
+        ]
+    },
+    {
+        "name": "org.jetbrains.gradle.awslambdaruntime.HelloWorld$Companion",
+        "methods": [
+            {
+                "name": "serializer"
+            }
+        ]
+    }
+]

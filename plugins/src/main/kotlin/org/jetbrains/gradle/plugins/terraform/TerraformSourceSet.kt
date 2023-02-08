@@ -60,6 +60,11 @@ open class TerraformSourceSet(private val project: Project, private val name: St
     var addLambdasToResources = false
 
     /**
+     * Adds the runtimes collected in the configuration as resources for this source set.
+     */
+    var addRuntimesToResources = false
+
+    /**
      * Register the check to execute `terraform apply`. If `false`, `terraform apply` cannot be executed.
      * It is meant to avoid accidental executions while experimenting with the plugin.
      */
