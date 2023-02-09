@@ -25,13 +25,6 @@ java {
 }
 
 dependencies {
-    implementation(libs.aws.lambda.java.core)
-    implementation(libs.aws.lambda.java.events)
-    implementation(libs.aws.lambda.java.runtime.`interface`.client)
-    implementation(libs.kotlinx.serialization.json)
-    implementation(libs.ktor.client.cio)
-    implementation(libs.ktor.client.content.negotiation)
-    implementation(libs.ktor.client.logging)
-    implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.logback.classic)
+    implementation(libs.kotlin.aws.lambda.runtime.client)
 }

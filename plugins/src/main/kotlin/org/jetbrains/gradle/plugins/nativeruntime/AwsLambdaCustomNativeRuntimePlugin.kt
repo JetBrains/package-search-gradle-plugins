@@ -1,11 +1,14 @@
+@file:Suppress("UnstableApiUsage")
+
 package org.jetbrains.gradle.plugins.nativeruntime
 
 import org.graalvm.buildtools.gradle.NativeImagePlugin
 import org.graalvm.buildtools.gradle.dsl.GraalVMExtension
-import org.gradle.api.*
+import org.gradle.api.Action
 import org.gradle.api.Named
-import org.gradle.api.artifacts.type.ArtifactTypeDefinition
-import org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+import org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFile
 import org.gradle.api.plugins.ApplicationPlugin
@@ -14,11 +17,13 @@ import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.jvm.toolchain.*
+import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.jvm.toolchain.JavaToolchainService
+import org.gradle.jvm.toolchain.JavaToolchainSpec
+import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.gradle.plugins.DownloadTask
 import org.jetbrains.gradle.plugins.nativeruntime.metadata.GraalVMMetadataFiles
-import org.jetbrains.gradle.plugins.terraform.TerraformPlugin
 import org.jetbrains.gradle.plugins.upx.UpxPlugin
 import org.jetbrains.gradle.plugins.upx.UpxTask
 import java.nio.file.Files
@@ -52,13 +57,15 @@ class AwsLambdaCustomNativeRuntimePlugin : Plugin<Project> {
 
         val graalVmExtension = extensions.getByType<GraalVMExtension>()
         val sourcesSets = extensions.getByType<SourceSetContainer>()
+
         val outgoingRuntimes by configurations.creating {
+            isCanBeConsumed = false
             isCanBeResolved = true
-            isCanBeResolved = false
             attributes {
-                attribute(ARTIFACT_TYPE_ATTRIBUTE, objects.named(Attributes.ARTIFACT_TYPE))
+                attribute(USAGE_ATTRIBUTE, objects.named(Attributes.ARTIFACT_TYPE))
             }
         }
+
         val emulatorVersion = objects.property<String>()
             .convention("1.10")
         val metadataDirectory = objects.directoryProperty()
@@ -80,7 +87,9 @@ class AwsLambdaCustomNativeRuntimePlugin : Plugin<Project> {
 
         lambdasContainer.create("main")
 
-        val nativeRuntimeExtension = extensions.create<Extension>("aws", "aws", emulatorVersion, javaToolchainSpec)
+        val nativeRuntimeExtension = extensions
+            .create<Extension>("aws", "aws", emulatorVersion, javaToolchainSpec)
+
         nativeRuntimeExtension.extensions.add("lambdas", lambdasContainer)
 
         val downloadLambdaRIE by tasks.registering(DownloadTask::class) {
@@ -132,29 +141,38 @@ class AwsLambdaCustomNativeRuntimePlugin : Plugin<Project> {
                     }
                 }
             }
-            if (name != "main") {
+            val compressTask = if (name != "main") {
                 graalVmExtension.binaries.create(name) {
                     classpath(sourcesSets["main"].runtimeClasspath)
                     mainClass.set(entryClass)
                     imageName.set(name)
-
-                    val compressTask = tasks.named<UpxTask>("compressNative${name.capitalize()}Compile")
-                    tasks.create("runLambda${name.capitalize()}") {
-                        dependsOn(downloadLambdaRIE, compressTask)
-                        group = "aws"
-                        doFirst {
-                            exec {
-                                commandLine = buildList {
-                                    add(downloadLambdaRIE.get().outputFile.get().absolutePath)
-                                    add(compressTask.get().outputExecutable.get().absolutePath)
-                                }
-                            }
+                }
+                tasks.named<UpxTask>("compressNative${name.capitalize()}Compile")
+            } else {
+                graalVmExtension.binaries.named("main") {
+                    if (!plugins.hasPlugin(ApplicationPlugin::class.java)) {
+                        mainClass.set(entryClass)
+                        classpath(sourcesSets["main"].runtimeClasspath)
+                    }
+                }
+                tasks.named<UpxTask>("compressNativeCompile")
+            }
+            outgoingRuntimes.outgoing {
+                artifact(compressTask.flatMap { it.outputExecutable }) {
+                    builtBy(compressTask)
+                }
+            }
+            tasks.create("runLambda${name.capitalize()}") {
+                dependsOn(downloadLambdaRIE, compressTask)
+                group = "aws"
+                doFirst {
+                    exec {
+                        commandLine = buildList {
+                            add(downloadLambdaRIE.get().outputFile.get().absolutePath)
+                            add(compressTask.get().outputExecutable.get().absolutePath)
                         }
                     }
                 }
-            } else graalVmExtension.binaries.named("main") {
-                if (!plugins.hasPlugin(ApplicationPlugin::class.java)) mainClass.set(entryClass)
-                classpath(sourcesSets["main"].runtimeClasspath)
             }
         }
 
@@ -170,8 +188,8 @@ class AwsLambdaCustomNativeRuntimePlugin : Plugin<Project> {
                     }
                     .forEach { (merger, inputs) ->
                         merger.merge(
-                            inputs,
-                            metadataDirectory.file(merger.fileName).get().asFile
+                            sources = inputs,
+                            target = metadataDirectory.file(merger.fileName).get().asFile
                                 .also { it.parentFile.mkdirs() }
                         )
                     }

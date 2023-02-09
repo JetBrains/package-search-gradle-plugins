@@ -10,7 +10,8 @@ object GraalVMMetadataFiles {
 
     private val json = Json {
         prettyPrint = true
-        encodeDefaults = false
+        encodeDefaults = true
+        explicitNulls = false
     }
 
     interface Merger {
@@ -53,8 +54,8 @@ object GraalVMMetadataFiles {
     val SERIALIZATION = merger("serialization-config.json") { inputFiles, output ->
         val inputs = inputFiles.map { json.decodeFromString<SerializationMetadata>(it.readText()) }
         val serialization = SerializationMetadata(
-            types = inputs.mapNotNull { it.types }.flatten().distinct().takeIf { it.isNotEmpty() },
-            lambdaCapturingTypes = inputs.mapNotNull { it.lambdaCapturingTypes }.flatten().distinct().takeIf { it.isNotEmpty() },
+            types = inputs.map { it.types }.flatten().distinct(),
+            lambdaCapturingTypes = inputs.map { it.lambdaCapturingTypes }.flatten().distinct(),
             proxies = JsonArray(inputs.mapNotNull { it.proxies }.flatten())
         )
         output.writeText(json.encodeToString(serialization))

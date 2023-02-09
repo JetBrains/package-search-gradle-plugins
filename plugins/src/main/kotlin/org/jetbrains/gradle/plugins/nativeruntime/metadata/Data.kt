@@ -2,8 +2,6 @@ package org.jetbrains.gradle.plugins.nativeruntime.metadata
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
 
 typealias PredefinedClassMetadata = List<PredefinedClass>
 
@@ -21,10 +19,10 @@ data class ClassInfo(
 
 @Serializable
 data class SerializationMetadata(
-    val types: List<Type>? = null,
-    val lambdaCapturingTypes: List<Type>? = null,
+    val types: List<Type> = emptyList(),
+    val lambdaCapturingTypes: List<Type> = emptyList(),
     // I could not find any example on this property...
-    val proxies: JsonArray? = null
+    val proxies: JsonArray? = JsonArray(emptyList())
 )
 
 @Serializable
@@ -39,7 +37,7 @@ typealias ProxyMetadata = List<Proxy>
 @Serializable
 data class Proxy(
     val condition: Condition? = null,
-    val interfaces: List<String>? = null
+    val interfaces: List<String> = emptyList()
 )
 
 @Serializable
@@ -58,7 +56,7 @@ data class Resources(
 data class Bundle(
     val condition: Condition? = null,
     val name: String? = null,
-    val locale: List<String>? = null
+    val locale: List<String> = emptyList()
 )
 
 @Serializable

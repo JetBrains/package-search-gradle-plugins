@@ -14,6 +14,7 @@ kotlinpoet = "1.12.0"
 aws-lambda-java-runtime-interface-client = "2.2.0"
 aws-lambda-java-core = "1.2.2"
 aws-lambda-java-events = "3.11.0"
+kotlin-aws-lambda-runtime-client = "1.0.0"
 
 [libraries]
 graalvm-native-gradle-plugin = { module = "org.graalvm.buildtools:native-gradle-plugin", version.ref = "graalvm" }
@@ -38,6 +39,7 @@ tukaani-xz = { module = "org.tukaani:xz", version.ref = "xz" }
 aws-lambda-java-runtime-interface-client = { module = "com.amazonaws:aws-lambda-java-runtime-interface-client", version.ref = "aws-lambda-java-runtime-interface-client" }
 aws-lambda-java-core = { module = "com.amazonaws:aws-lambda-java-core", version.ref = "aws-lambda-java-core" }
 aws-lambda-java-events = { module = "com.amazonaws:aws-lambda-java-events", version.ref = "aws-lambda-java-events" }
+kotlin-aws-lambda-runtime-client = { module = "com.github.lamba92:kotlin-aws-lambda-runtime-client", version.ref = "kotlin-aws-lambda-runtime-client" }
 
 [plugins]
 gradle-publish = { id = "com.gradle.plugin-publish", version.ref = "gradle-publish" }

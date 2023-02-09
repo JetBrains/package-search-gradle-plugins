@@ -3,8 +3,8 @@ package org.jetbrains.gradle.plugins.terraform
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE
 import org.gradle.api.attributes.Bundling
+import org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE
 import org.gradle.api.component.SoftwareComponentFactory
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.gradle.plugins.component6
@@ -50,7 +50,7 @@ open class TerraformPlugin @Inject constructor(
             isCanBeConsumed = false
             isCanBeResolved = true
             attributes {
-                attribute(ARTIFACT_TYPE_ATTRIBUTE, objects.named(ARTIFACT_TYPE))
+                attribute(USAGE_ATTRIBUTE, objects.named(ARTIFACT_TYPE))
             }
         }
 

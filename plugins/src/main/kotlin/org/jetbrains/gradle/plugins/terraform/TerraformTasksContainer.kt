@@ -146,7 +146,7 @@ internal class TerraformTasksContainer private constructor(
                 into("resources")
             }
             if (sourceSet.addLambdasToResources) from(lambdaConfiguration) {
-                into("resources/runtimes")
+                into("resources/lambdas")
             }
             if (sourceSet.addRuntimesToResources) from(runtimeConfiguration) {
                 into("resources/runtimes")
