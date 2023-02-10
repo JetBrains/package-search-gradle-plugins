@@ -13,7 +13,7 @@ plugins {
     `kotlin-dsl`
     `maven-publish`
     alias(libs.plugins.gradle.publish)
-    kotlin("plugin.serialization") version "1.7.10"
+    alias(libs.plugins.kotlin.plugin.serialization)
 }
 
 group = "org.jetbrains.gradle"
