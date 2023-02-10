@@ -92,24 +92,6 @@
         ]
     },
     {
-        "name": "org.jetbrains.gradle.awslambdaruntime.HelloWorld",
-        "fields": [
-            {
-                "name": "Companion"
-            }
-        ]
-    },
-    {
-        "name": "org.jetbrains.gradle.awslambdaruntime.HelloWorld$Companion",
-        "methods": [
-            {
-                "name": "serializer",
-                "parameterTypes": [
-                ]
-            }
-        ]
-    },
-    {
         "name" : "io.ktor.network.selector.InterestSuspensionsMap",
         "allDeclaredFields": true,
         "allDeclaredMethods": true,
