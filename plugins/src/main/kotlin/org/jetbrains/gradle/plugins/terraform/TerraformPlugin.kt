@@ -45,8 +45,7 @@ open class TerraformPlugin @Inject constructor(
             }
 
         }
-
-        val runtimes: Configuration by configurations.creating {
+        val lambdaRuntime: Configuration by configurations.creating {
             isCanBeConsumed = false
             isCanBeResolved = true
             attributes {
@@ -78,7 +77,7 @@ open class TerraformPlugin @Inject constructor(
                 api = api,
                 implementation = implementation,
                 lambdaConfiguration = lambda,
-                runtimeConfiguration = runtimes,
+                runtimeConfiguration = lambdaRuntime,
                 terraformExtract = terraformExtract,
                 terraformExtension = terraformExtension,
                 terraformInit = terraformInit,
