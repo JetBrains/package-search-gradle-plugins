@@ -7,8 +7,8 @@ typealias PredefinedClassMetadata = List<PredefinedClass>
 
 @Serializable
 data class PredefinedClass(
-    val type: String? = null,
-    val classes: List<ClassInfo>? = null
+    val type: String,
+    val classes: List<ClassInfo> = emptyList()
 )
 
 @Serializable
@@ -72,7 +72,7 @@ typealias ReflectionMetadata = List<Reflection>
 @Serializable
 data class Reflection(
     val condition: Condition? = null,
-    val name: String? = null,
+    val name: String,
     val methods: List<Method>? = null,
     val queriedMethods: List<Method>? = null,
     val fields: List<Field>? = null,

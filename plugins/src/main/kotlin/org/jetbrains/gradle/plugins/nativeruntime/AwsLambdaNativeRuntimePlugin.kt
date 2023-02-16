@@ -28,6 +28,8 @@ import org.jetbrains.gradle.plugins.upx.UpxPlugin
 import org.jetbrains.gradle.plugins.upx.UpxTask
 import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermission.*
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class AwsLambdaNativeRuntimePlugin : Plugin<Project> {
 
@@ -127,7 +129,8 @@ class AwsLambdaNativeRuntimePlugin : Plugin<Project> {
                             )
                             add(buildString {
                                 append("-agentlib:native-image-agent=")
-                                append("config-output-dir=${outputMetadataDir.get().asFile.absolutePath}")
+                                val now = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy_HH-mm"))
+                                append("config-output-dir=${outputMetadataDir.get().asFile.resolve(now).absolutePath}")
                                 append(",builtin-caller-filter=${graalVmExtension.agent.builtinCallerFilter.get()}")
                                 append(",builtin-heuristic-filter=${graalVmExtension.agent.builtinHeuristicFilter.get()}")
                                 append(",experimental-class-define-support=${graalVmExtension.agent.enableExperimentalPredefinedClasses.get()}")
@@ -184,7 +187,7 @@ class AwsLambdaNativeRuntimePlugin : Plugin<Project> {
                     .filter { it.isDirectory }
                 GraalVMMetadataFiles.ALL
                     .associateWith { merger ->
-                        inputDirs.mapNotNull { it.walkTopDown().firstOrNull { it.name == merger.fileName } }
+                        inputDirs.flatMap { it.walkTopDown().filter { it.name == merger.fileName } }
                     }
                     .forEach { (merger, inputs) ->
                         merger.merge(
