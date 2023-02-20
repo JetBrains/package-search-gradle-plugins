@@ -9,6 +9,7 @@ import org.gradle.api.Task
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.TaskContainerScope
+import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
 import org.jetbrains.gradle.plugins.NullOutputStream
 import org.jetbrains.gradle.plugins.docker.tasks.*
@@ -92,7 +93,7 @@ internal fun TaskContainerScope.registerDockerExecPush(
 ): TaskProvider<DockerExecPush> {
     val dockerLoginTaskName = "docker${repoName}Login"
     val dockerLogin =
-        rootProject.tasks.findByName(dockerLoginTaskName) as? DockerExecLogin
+        rootProject.tasks.findByName(dockerLoginTaskName)
             ?: rootProject.tasks.register<DockerExecLogin>(dockerLoginTaskName) {
                 url = repo.url
                 username = repo.username?.takeIf { it.isNotEmpty() } ?: repo.email?.takeIf { it.isNotEmpty() }
