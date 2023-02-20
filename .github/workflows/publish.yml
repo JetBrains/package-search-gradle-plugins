@@ -21,3 +21,4 @@ jobs:
         with:
           gradle-version: 7.6
           arguments: publishPlugins
+          build-root-directory: plugins
