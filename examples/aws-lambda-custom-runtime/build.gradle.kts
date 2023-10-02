@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.plugin.serialization)
@@ -11,10 +13,15 @@ kotlin.target.compilations.all {
     }
 }
 
+graalvmNative {
+
+}
+
 aws {
+    rieEmulatorVersion = "1.13"
     lambdas {
         main {
-            entryClass.set("org.jetbrains.gradle.awslambdaruntime.MainKt")
+            entryClass = "org.jetbrains.gradle.awslambdaruntime.MainKt"
         }
     }
 }

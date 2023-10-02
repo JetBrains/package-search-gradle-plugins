@@ -1,5 +1,175 @@
 [
     {
+      "name": "android.os.Build$VERSION"
+    },
+  {
+    "name": "ch.qos.logback.classic.BasicConfigurator",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": [
+        ]
+      }
+    ]
+  },
+  {
+    "name": "ch.qos.logback.classic.joran.SerializedModelConfigurator",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": [
+        ]
+      }
+    ]
+  },
+  {
+    "name": "ch.qos.logback.classic.util.DefaultJoranConfigurator",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": [
+        ]
+      }
+    ]
+  },
+  {
+    "name": "com.github.lamba92.aws.lambda.runtime.ErrorResponse",
+    "fields": [
+      {
+        "name": "Companion"
+      }
+    ]
+  },
+  {
+    "name": "com.github.lamba92.aws.lambda.runtime.ErrorResponse$Companion",
+    "methods": [
+      {
+        "name": "serializer",
+        "parameterTypes": [
+        ]
+      }
+    ]
+  },
+  {
+    "name": "io.ktor.client.HttpClient",
+    "fields": [
+      {
+        "name": "closed"
+      }
+    ]
+  },
+  {
+    "name": "io.ktor.client.call.HttpClientCall",
+    "fields": [
+      {
+        "name": "received"
+      }
+    ]
+  },
+  {
+    "name": "io.ktor.client.engine.HttpClientEngineBase",
+    "fields": [
+      {
+        "name": "closed"
+      }
+    ]
+  },
+  {
+    "name": "io.ktor.client.engine.cio.Endpoint",
+    "fields": [
+      {
+        "name": "connections"
+      }
+    ]
+  },
+  {
+    "name": "io.ktor.client.plugins.logging.HttpClientCallLogger",
+    "fields": [
+      {
+        "name": "requestLogged"
+      },
+      {
+        "name": "responseLogged"
+      }
+    ]
+  },
+  {
+    "name": "io.ktor.network.selector.InterestSuspensionsMap",
+    "fields": [
+      {
+        "name": "acceptHandlerReference"
+      },
+      {
+        "name": "connectHandlerReference"
+      },
+      {
+        "name": "readHandlerReference"
+      },
+      {
+        "name": "writeHandlerReference"
+      }
+    ],
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "queryAllDeclaredMethods": true,
+    "queryAllDeclaredConstructors": true,
+    "queryAllPublicMethods": true,
+    "queryAllPublicConstructors": true
+  },
+  {
+    "name": "io.ktor.network.selector.LockFreeMPSCQueue",
+    "fields": [
+      {
+        "name": "_cur"
+      }
+    ]
+  },
+  {
+    "name": "io.ktor.network.selector.LockFreeMPSCQueueCore",
+    "fields": [
+      {
+        "name": "_next"
+      },
+      {
+        "name": "_state"
+      }
+    ]
+  },
+  {
+    "name": "io.ktor.network.selector.SelectableBase",
+    "fields": [
+      {
+        "name": "_interestedOps"
+      }
+    ]
+  },
+  {
+    "name": "io.ktor.util.collections.CopyOnWriteHashMap",
+    "fields": [
+      {
+        "name": "current"
+      }
+    ]
+  },
+  {
+    "name": "io.ktor.utils.io.ByteBufferChannel",
+    "fields": [
+      {
+        "name": "_closed"
+      },
+      {
+        "name": "_readOp"
+      },
+      {
+        "name": "_state"
+      },
+      {
+        "name": "_writeOp"
+      }
+    ]
+  },
+  {
         "name": "io.ktor.utils.io.ClosedWriteChannelException",
         "methods": [
             {
@@ -13,6 +183,50 @@
         "queryAllPublicConstructors": true
     },
     {
+      "name": "io.ktor.utils.io.core.internal.ChunkBuffer",
+      "fields": [
+        {
+          "name": "nextRef"
+        },
+        {
+          "name": "refCount"
+        }
+      ]
+    },
+  {
+    "name": "io.ktor.utils.io.internal.CancellableReusableContinuation",
+    "fields": [
+      {
+        "name": "jobCancellationHandler"
+      },
+      {
+        "name": "state"
+      }
+    ]
+  },
+  {
+    "name": "io.ktor.utils.io.internal.RingBufferCapacity",
+    "fields": [
+      {
+        "name": "_availableForRead$internal"
+      },
+      {
+        "name": "_availableForWrite$internal"
+      },
+      {
+        "name": "_pendingToFlush"
+      }
+    ]
+  },
+  {
+    "name": "io.ktor.utils.io.pool.DefaultPool",
+    "fields": [
+      {
+        "name": "top"
+      }
+    ]
+  },
+  {
         "name": "java.io.FilePermission"
     },
     {
@@ -82,57 +296,59 @@
         "queryAllPublicConstructors": true
     },
     {
-        "name": "kotlin.internal.jdk8.JDK8PlatformImplementations",
-        "methods": [
+      "name": "java.util.concurrent.atomic.AtomicBoolean",
+        "fields": [
             {
-                "name": "<init>",
-                "parameterTypes": [
-                ]
+              "name": "value"
             }
         ]
     },
     {
-        "name" : "io.ktor.network.selector.InterestSuspensionsMap",
-        "allDeclaredFields": true,
-        "allDeclaredMethods": true,
-        "allDeclaredConstructors": true,
-        "queryAllDeclaredMethods": true,
-        "queryAllDeclaredConstructors": true,
-        "queryAllPublicMethods": true,
-        "queryAllPublicConstructors": true
-    },
-    {
-        "name": "kotlinx.coroutines.debug.internal.DebugProbesImpl$SequenceNumberRefVolatile",
+      "name": "java.util.concurrent.atomic.AtomicReference",
         "fields": [
             {
-                "name": "sequenceNumber"
+              "name": "value"
             }
         ]
     },
     {
-        "name": "kotlinx.coroutines.scheduling.CoroutineScheduler",
+      "name": "javax.smartcardio.CardPermission"
+    },
+  {
+    "name": "kotlin.SafePublicationLazyImpl",
         "fields": [
             {
-                "name": "parkedWorkersStack"
-            },
-            {
-                "name": "controlState"
+              "name": "_value"
             }
         ]
     },
     {
-        "name": "kotlinx.coroutines.internal.LockFreeTaskQueue",
+      "name": "kotlin.reflect.jvm.internal.ReflectionFactoryImpl"
+    },
+  {
+    "name": "kotlinx.coroutines.AwaitAll",
+    "fields": [
+      {
+        "name": "notCompletedCount"
+      }
+    ]
+  },
+  {
+    "name": "kotlinx.coroutines.AwaitAll$AwaitAllNode",
         "fields": [
             {
-                "name": "_cur"
+              "name": "_disposer"
             }
         ]
-    },
-    {
-        "name": "kotlinx.coroutines.internal.LockFreeTaskQueueCore",
-        "fields": [
-            {
-                "name": "_next"
+  },
+  {
+    "name": "kotlinx.coroutines.CancellableContinuationImpl",
+    "fields": [
+      {
+        "name": "_decisionAndIndex"
+      },
+      {
+        "name": "_parentHandle"
             },
             {
                 "name": "_state"
@@ -140,32 +356,40 @@
         ]
     },
     {
+      "name": "kotlinx.coroutines.CancelledContinuation",
+      "fields": [
+        {
+          "name": "_resumed"
+        }
+      ]
+    },
+  {
+    "name": "kotlinx.coroutines.CompletedExceptionally",
+    "fields": [
+      {
+        "name": "_handled"
+      }
+    ]
+  },
+  {
         "name": "kotlinx.coroutines.EventLoopImplBase",
         "fields": [
             {
-                "name": "_queue"
-            },
-            {
                 "name": "_delayed"
-            }
-        ]
-    },
-    {
-        "name": "io.ktor.network.selector.LockFreeMPSCQueue",
-        "fields": [
-            {
-                "name": "_cur"
-            }
-        ]
-    },
-    {
-        "name": "io.ktor.network.selector.LockFreeMPSCQueueCore",
-        "fields": [
-            {
-                "name": "_next"
             },
+          {
+            "name": "_isCompleted"
+          },
             {
-                "name": "_state"
+              "name": "_queue"
+            }
+        ]
+    },
+    {
+      "name": "kotlinx.coroutines.InvokeOnCancelling",
+        "fields": [
+            {
+              "name": "_invoked"
             }
         ]
     },
@@ -173,40 +397,64 @@
         "name": "kotlinx.coroutines.JobSupport",
         "fields": [
             {
+              "name": "_parentHandle"
+            },
+          {
                 "name": "_state"
             }
         ]
     },
     {
-        "name": "kotlinx.coroutines.internal.DispatchedContinuation",
+      "name": "kotlinx.coroutines.JobSupport$Finishing",
         "fields": [
             {
-                "name": "_reusableCancellableContinuation"
+              "name": "_exceptionsHolder"
+            },
+          {
+            "name": "_isCompleting"
+          },
+          {
+            "name": "_rootCause"
             }
         ]
     },
     {
-        "name": "kotlinx.coroutines.scheduling.WorkQueue",
+      "name": "kotlinx.coroutines.channels.BufferedChannel",
         "fields": [
             {
-                "name": "lastScheduledTask"
+              "name": "_closeCause"
+            },
+          {
+            "name": "bufferEnd"
+          },
+          {
+            "name": "bufferEndSegment"
+          },
+          {
+            "name": "closeHandler"
+          },
+          {
+            "name": "completedExpandBuffersAndPauseFlag"
+          },
+          {
+            "name": "receiveSegment"
+          },
+          {
+            "name": "receivers"
+          },
+          {
+            "name": "sendSegment"
+          },
+          {
+            "name": "sendersAndCloseStatus"
             }
         ]
     },
     {
-        "name": "kotlinx.coroutines.sync.SemaphoreImpl",
+      "name": "kotlinx.coroutines.internal.AtomicOp",
         "fields": [
             {
-                "name": "head"
-            },
-            {
-                "name": "deqIdx"
-            },
-            {
-                "name": "tail"
-            },
-            {
-                "name": "enqIdx"
+              "name": "_consensus"
             }
         ]
     },
@@ -222,6 +470,22 @@
         ]
     },
     {
+      "name": "kotlinx.coroutines.internal.DispatchedContinuation",
+      "fields": [
+        {
+          "name": "_reusableCancellableContinuation"
+        }
+      ]
+    },
+  {
+    "name": "kotlinx.coroutines.internal.LimitedDispatcher",
+    "fields": [
+      {
+        "name": "runningWorkers"
+      }
+    ]
+  },
+  {
         "name": "kotlinx.coroutines.internal.LockFreeLinkedListNode",
         "fields": [
             {
@@ -236,103 +500,140 @@
         ]
     },
     {
-        "name": "kotlinx.coroutines.internal.AtomicOp",
+      "name": "kotlinx.coroutines.internal.LockFreeTaskQueue",
         "fields": [
             {
-                "name": "_consensus"
+              "name": "_cur"
             }
         ]
     },
     {
-        "name": "kotlinx.coroutines.CancellableContinuationImpl",
+      "name": "kotlinx.coroutines.internal.LockFreeTaskQueueCore",
         "fields": [
             {
+              "name": "_next"
+            },
+          {
                 "name": "_state"
             }
         ]
     },
     {
-        "name": "io.ktor.util.collections.CopyOnWriteHashMap",
+      "name": "kotlinx.coroutines.internal.Segment",
         "fields": [
             {
-                "name": "current"
+              "name": "cleanedAndPointers"
             }
         ]
     },
     {
-        "name": "io.ktor.utils.io.core.internal.ChunkBuffer",
+      "name": "kotlinx.coroutines.internal.ThreadSafeHeap",
         "fields": [
             {
-                "name": "nextRef"
+              "name": "_size"
             }
         ]
     },
     {
-        "name": "kotlinx.coroutines.channels.AbstractSendChannel",
+      "name": "kotlinx.coroutines.scheduling.CoroutineScheduler",
         "fields": [
             {
-                "name": "onCloseHandler"
+              "name": "_isTerminated"
+            },
+          {
+            "name": "controlState"
+          },
+          {
+            "name": "parkedWorkersStack"
             }
         ]
     },
     {
-        "name": "io.ktor.network.selector.InterestSuspensionsMap",
+      "name": "kotlinx.coroutines.scheduling.CoroutineScheduler$Worker",
         "fields": [
             {
-                "name": "readHandlerReference"
-            },
-            {
-                "name": "writeHandlerReference"
-            },
-            {
-                "name": "acceptHandlerReference"
-            },
-            {
-                "name": "connectHandlerReference"
+              "name": "workerCtl"
             }
         ]
     },
     {
-        "name": "io.ktor.utils.io.ByteBufferChannel",
+      "name": "kotlinx.coroutines.scheduling.WorkQueue",
         "fields": [
             {
-                "name": "_state"
+              "name": "blockingTasksInBuffer"
             },
             {
-                "name": "_closed"
+              "name": "consumerIndex"
             },
             {
-                "name": "_readOp"
+              "name": "lastScheduledTask"
             },
             {
-                "name": "_writeOp"
+              "name": "producerIndex"
             }
         ]
     },
     {
-        "name": "io.ktor.utils.io.pool.DefaultPool",
+      "name": "kotlinx.coroutines.sync.SemaphoreImpl",
         "fields": [
             {
-                "name": "top"
-            }
-        ]
-    },
-    {
-        "name": "io.ktor.utils.io.internal.CancellableReusableContinuation",
-        "fields": [
-            {
-                "name": "state"
+              "name": "_availablePermits"
             },
-            {
-                "name": "jobCancellationHandler"
+          {
+            "name": "deqIdx"
+          },
+          {
+            "name": "enqIdx"
+          },
+          {
+            "name": "head"
+          },
+          {
+            "name": "tail"
             }
         ]
     },
     {
-        "name": "kotlin.SafePublicationLazyImpl",
+      "name": "org.jetbrains.gradle.awslambdaruntime.HelloWorld",
         "fields": [
             {
-                "name": "_value"
+              "name": "Companion"
+            }
+        ]
+    },
+  {
+    "name": "org.jetbrains.gradle.awslambdaruntime.HelloWorld$Companion",
+    "methods": [
+      {
+        "name": "serializer",
+        "parameterTypes": [
+        ]
+      }
+    ]
+  },
+  {
+    "name": "kotlin.internal.jdk8.JDK8PlatformImplementations",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": [
+        ]
+            }
+        ]
+    },
+    {
+      "name": "kotlinx.coroutines.debug.internal.DebugProbesImpl$SequenceNumberRefVolatile",
+        "fields": [
+            {
+              "name": "sequenceNumber"
+            }
+        ]
+    },
+  {
+    "name": "kotlinx.coroutines.channels.AbstractSendChannel",
+    "fields": [
+      {
+        "name": "onCloseHandler"
             }
         ]
     }

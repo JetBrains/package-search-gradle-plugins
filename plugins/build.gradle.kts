@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.PropertySpec
@@ -21,6 +23,7 @@ version = System.getenv("GITHUB_REF")?.substringAfterLast("/") ?: "0.0.1"
 
 dependencies {
     api(kotlin("reflect"))
+    api(kotlin("gradle-plugin"))
     api(libs.docker.java)
     api(libs.docker.java.transport.httpclient5)
     api(libs.kotlinx.serialization.json)
@@ -55,43 +58,44 @@ java {
     sourceCompatibility = JavaVersion.VERSION_11
 }
 
-pluginBundle {
-    website = "https://github.com/JetBrains/jetbrains-gradle-plugins"
-    vcsUrl = "https://github.com/JetBrains/jetbrains-gradle-plugins.git"
-    tags = listOf("docker", "container", "terraform", "cloud", "aws", "azure", "google", "liquibase", "migrations")
-}
-
 gradlePlugin {
+    website.set("https://github.com/JetBrains/jetbrains-gradle-plugins")
+    vcsUrl.set("https://github.com/JetBrains/jetbrains-gradle-plugins.git")
     plugins {
         create("dockerPlugin") {
             id = "org.jetbrains.gradle.docker"
             displayName = "JetBrains Docker Plugin"
             description = "Build and push Docker images from your build."
             implementationClass = "org.jetbrains.gradle.plugins.docker.DockerPlugin"
+            tags.set(listOf("docker", "container"))
         }
         create("terraformPlugin") {
             id = "org.jetbrains.gradle.terraform"
             displayName = "JetBrains Terraform Plugin"
             description = "Source sets plugin for controlling terraform projects from Gradle, batteries included."
             implementationClass = "org.jetbrains.gradle.plugins.terraform.TerraformPlugin"
+            tags.set(listOf("terraform", "cloud", "aws", "azure", "google"))
         }
         create("liquibasePlugin") {
             id = "org.jetbrains.gradle.liquibase"
             displayName = "JetBrains Liquibase Plugin"
             description = "Run migrations from Gradle using the Liquibase runtime."
             implementationClass = "org.jetbrains.gradle.plugins.liquibase.LiquibasePlugin"
+            tags.set(listOf("liquibase", "migrations"))
         }
         create("upxPlugin") {
             id = "org.jetbrains.gradle.upx"
             displayName = "JetBrains UPX Plugin"
             description = "Compress your native executables using UPX"
             implementationClass = "org.jetbrains.gradle.plugins.upx.UpxPlugin"
+            tags.set(listOf("upx", "compression"))
         }
         create("nativeRuntime") {
             id = "org.jetbrains.gradle.aws-lambda-native-runtime"
             displayName = "JetBrains Aws Lambda Custom Native Runtime Plugin"
             description = "Create a custom AWS Lambda runtime using GraalVM native-image and UPX"
             implementationClass = "org.jetbrains.gradle.plugins.nativeruntime.AwsLambdaNativeRuntimePlugin"
+            tags.set(listOf("aws", "aws-lambda"))
         }
     }
 }

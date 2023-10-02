@@ -1,20 +1,20 @@
 [versions]
-docker-java = "3.2.14"
-graalvm = "0.9.19"
+docker-java = "3.3.3"
+graalvm = "0.9.27"
 gradle-publish = "1.0.0"
-junit = "5.9.2"
-kotlin = "1.7.10"
-kotlinx-serialization = "1.4.1"
-ktor = "2.2.3"
-liquibase = "4.19.0"
-logback = "1.4.5"
-sqlite-driver = "3.40.0.0"
+junit = "5.10.0"
+kotlin = "1.9.10"
+kotlinx-serialization = "1.6.0"
+ktor = "2.3.4"
+liquibase = "4.23.2"
+logback = "1.4.11"
+sqlite-driver = "3.43.0.0"
 xz = "1.9"
 kotlinpoet = "1.12.0"
 aws-lambda-java-runtime-interface-client = "2.2.0"
 aws-lambda-java-core = "1.2.2"
 aws-lambda-java-events = "3.11.0"
-kotlin-aws-lambda-runtime-client = "1.0.0"
+kotlin-aws-lambda-runtime-client = "1.0.2"
 
 [libraries]
 graalvm-native-gradle-plugin = { module = "org.graalvm.buildtools:native-gradle-plugin", version.ref = "graalvm" }
@@ -23,6 +23,10 @@ docker-java-transport-httpclient5 = { module = "com.github.docker-java:docker-ja
 kotlinpoet = { module = "com.squareup:kotlinpoet", version.ref = "kotlinpoet" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
+ktor-client-curl = { module = "io.ktor:ktor-client-curl", version.ref = "ktor" }
+ktor-client-winhttp = { module = "io.ktor:ktor-client-winhttp", version.ref = "ktor" }
+ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-apache = { module = "io.ktor:ktor-client-apache", version.ref = "ktor" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
@@ -44,5 +48,6 @@ kotlin-aws-lambda-runtime-client = { module = "com.github.lamba92:kotlin-aws-lam
 [plugins]
 gradle-publish = { id = "com.gradle.plugin-publish", version.ref = "gradle-publish" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-plugin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 graalvm-buildtools-native = { id = "org.graalvm.buildtools.native", version.ref = "graalvm" }

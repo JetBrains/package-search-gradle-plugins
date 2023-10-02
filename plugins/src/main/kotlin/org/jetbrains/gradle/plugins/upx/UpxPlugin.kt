@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 package org.jetbrains.gradle.plugins.upx
 
 import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask
@@ -6,14 +8,18 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.RelativePath
 import org.gradle.api.provider.Property
-import org.gradle.api.tasks.*
+import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.Exec
+import org.gradle.api.tasks.Sync
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.kotlin.dsl.*
-import org.jetbrains.gradle.plugins.DownloadTask
-import org.jetbrains.gradle.plugins.buildUpxUrl
-import org.jetbrains.gradle.plugins.xz
+import org.jetbrains.gradle.plugins.*
+import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
+import org.jetbrains.kotlin.konan.target.Family
 import java.io.ByteArrayOutputStream
-import java.io.File
+import java.nio.file.Path
+import java.nio.file.Paths
+import kotlin.io.path.absolutePathString
 
 @Suppress("unused")
 class UpxPlugin : Plugin<Project> {
@@ -21,7 +27,8 @@ class UpxPlugin : Plugin<Project> {
     open class Extension(
         private val name: String,
         val version: Property<String>,
-        val executableProvider: Property<File>
+        val localUpxPath: Property<Path>,
+        val upxExecutableProvider: Provider<Path>
     ) : Named {
 
         override fun getName() = name
@@ -32,73 +39,108 @@ class UpxPlugin : Plugin<Project> {
         val versionProperty = objects.property<String>()
             .convention("4.0.2")
 
-        val executableProvider = objects.property<File>()
+        val localUpxPath = objects.property<Path>()
 
-        if (OperatingSystem.current().isMacOsX)
-            executableProvider.convention(provider {
-                val stdout = ByteArrayOutputStream()
-                exec {
-                    standardOutput = stdout
-                    commandLine("whereis", "upx")
-                }
-                val upxPath = stdout.toString().lines()
-                    .first { it.startsWith("upx: ") }
-                    .removePrefix("upx: ")
-                    .split(" ")
-                    .first()
-                File(upxPath)
-            })
+        val os = OperatingSystem.current()
+        if (os.isMacOsX) {
+            logger.lifecycle("Searching for installed upx...")
+            val stdout = ByteArrayOutputStream()
+            exec {
+                standardOutput = stdout
+                commandLine("whereis", "upx")
+            }
+            stdout.toString().lines()
+                .firstOrNull() { it.startsWith("upx: ") }
+                ?.removePrefix("upx: ")
+                ?.split(" ")
+                ?.firstOrNull()
+                ?.let { Paths.get(it) }
+                ?.also { logger.lifecycle("Found: ${it.absolutePathString()}") }
+                ?.also { localUpxPath.convention(it) }
+                ?: logger.lifecycle("upx executable not found.")
+        }
 
-        val upxExtension = extensions.create<Extension>("upx", "upx", versionProperty, executableProvider)
-
-        val upxDownloadTask by tasks.registering(DownloadTask::class) {
+        val upxDownloadTask by rootProject.tasks.getOrRegistering(DownloadTask::class) {
             group = "upx"
-            outputFile.set(
-                buildDir
-                    .resolve("upx/downloads")
-                    .resolve(if (OperatingSystem.current().isWindows) "upx.zip" else "upx.tar.xz")
-            )
-            url.set(versionProperty.map {
+            outputFile = layout.buildDirectory
+                .file("upx/downloads/" + if (os.isWindows) "upx.zip" else "upx.tar.xz")
+            url = versionProperty.map {
                 buildUpxUrl(
-                    it, UpxSupportedOperatingSystems.current()
+                    version = it,
+                    platform = UpxSupportedOperatingSystems.current()
                         ?: error(
-                            "Current OS \"${OperatingSystem.current()}\" is not supported." +
+                            "Current OS \"$os\" is not supported." +
                                     "The Upx Gradle plugin will be disabled."
                         )
                 )
+            }
+        }
+        val unzipUpx by rootProject.tasks.getOrRegistering(Sync::class) {
+            group = "upx"
+            from(upxDownloadTask.map {
+                if (os.isWindows) zipTree(it.outputFile) else tarTree(resources.xz(it.outputFile))
             })
+            include { it.name == "upx" || it.name == "upx.exe" }
+            eachFile { relativePath = RelativePath(true, name) }
+            into(layout.buildDirectory.dir("upx/exec"))
         }
 
-        tasks.register<Copy>("unzipUpx") {
-            dependsOn(upxDownloadTask)
+        val upxExecutable = when {
+            localUpxPath.isPresent -> localUpxPath
+            else -> unzipUpx.map { it.destinationDir.toPath().resolve("upx".suffixIf(os.isWindows) { ".exe" }) }
+        }
+
+        extensions.create<Extension>("upx", "upx", versionProperty, localUpxPath, upxExecutable)
+
+        val compress by tasks.registering {
             group = "upx"
-            if (!upxExtension.executableProvider.isPresent) {
-                val file = upxDownloadTask.get().outputs.files.singleFile
-                from(if (OperatingSystem.current().isWindows) zipTree(file) else tarTree(resources.xz(file)))
-                include { it.name == "upx" || it.name == "upx.exe" }
-                eachFile { relativePath = RelativePath(true, name) }
-            } else from(upxExtension.executableProvider) {
-                rename { if (OperatingSystem.current().isWindows) "upx.exe" else "upx" }
-            }
-            into("$buildDir/upx/exec")
         }
         plugins.withId("org.graalvm.buildtools.native") {
             tasks.withType<BuildNativeImageTask> nativeBuild@{
-                val compress = tasks.register<UpxTask>("compress${name.capitalize()}") {
+                val compressTask = tasks.register<UpxTask>("compress${name.capitalize()}") {
                     dependsOn(this@nativeBuild)
-                    inputExecutable.set(outputDirectory.flatMap { it.file(executableName) })
-                    doFirst {
-                        val file = outputExecutable.get().asFile
-                        if (file.exists()) file.delete()
-                    }
+                    inputExecutable = outputDirectory.flatMap { it.file(executableName) }
+                    upxExecutableFile = upxExecutable
+                }
+                compress {
+                    dependsOn(compressTask)
                 }
                 tasks.register<Exec>("runCompressed${name.capitalize()}") {
                     group = "application"
-                    dependsOn(compress)
-                    executable = compress.get().outputExecutable.get().asFile.absolutePath
+                    dependsOn(compressTask)
+                    executable = compressTask.get().outputExecutable.get().asFile.absolutePath
+                }
+            }
+        }
+        plugins.withId("org.jetbrains.kotlin.multiplatform") {
+            tasks {
+                withType<KotlinNativeLink> link@{
+                    outputs.file(outputFile)
+                    val compressTask = register<UpxTask>("compress${name.removePrefix("link")}") {
+                        dependsOn(this@link)
+                        inputExecutable = layout.file(outputFile)
+                        upxExecutableFile = upxExecutable
+
+                        onlyIf {
+                            val isCompatible = when (binary.target.konanTarget.family) {
+                                Family.OSX -> os.isMacOsX
+                                Family.LINUX -> os.isLinux
+                                Family.MINGW -> os.isWindows
+                                else -> false
+                            }
+                            isCompatible && !sources.isEmpty
+                        }
+                    }
+                    compress {
+                        dependsOn(compressTask)
+                    }
+                    register<Exec>("runCompressed${compressTask.name.removePrefix("compress")}") {
+                        dependsOn(compressTask)
+                        group = "run"
+                        executable = compressTask.get().outputExecutable.asFile.get().absolutePath
+                    }
                 }
             }
         }
     }
 }
-

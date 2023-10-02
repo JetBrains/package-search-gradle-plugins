@@ -1,0 +1,13 @@
+# curl -XPOST "http://localhost:8080/2015-03-31/functions/function/invocations" -d '{"hello": "world"}'
+POST http://localhost:8080/2015-03-31/functions/function/invocations
+Content-Type: application/json
+
+{
+  "hello": "world"
+}
+
+###
+
+
+
+

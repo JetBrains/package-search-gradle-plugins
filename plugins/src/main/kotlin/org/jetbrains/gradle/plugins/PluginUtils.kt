@@ -2,10 +2,7 @@
 
 package org.jetbrains.gradle.plugins
 
-import org.gradle.api.Action
-import org.gradle.api.NamedDomainObjectContainer
-import org.gradle.api.Plugin
-import org.gradle.api.Task
+import org.gradle.api.*
 import org.gradle.api.internal.resources.DefaultResourceHandler
 import org.gradle.api.internal.resources.ResourceResolver
 import org.gradle.api.model.ObjectFactory
@@ -16,18 +13,17 @@ import org.gradle.api.provider.Property
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.TaskContainer
-import org.gradle.kotlin.dsl.invoke
-import org.gradle.kotlin.dsl.property
+import org.gradle.kotlin.dsl.*
 import org.jetbrains.gradle.plugins.upx.UpxSupportedOperatingSystems
 import org.jetbrains.gradle.plugins.upx.XZArchiver
 import org.tukaani.xz.SeekableFileInputStream
 import org.tukaani.xz.SeekableXZInputStream
 import java.io.File
 import java.io.OutputStream
-import java.net.URI
 import kotlin.properties.Delegates
 import kotlin.properties.ReadOnlyProperty
 import kotlin.properties.ReadWriteProperty
+import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
 /**
@@ -153,3 +149,33 @@ fun ResourceHandler.xz(path: Any): XZArchiver {
     resourceResolverField.isAccessible = false
     return XZArchiver(resource)
 }
+
+fun String.suffixIf(condition: Boolean, suffix: () -> String) =
+    if (condition) this + suffix() else this
+
+fun <T : Any, C : PolymorphicDomainObjectContainer<T>, U : T> C.getOrRegistering(
+    type: KClass<U>,
+    configureIfExists: Boolean = false,
+    action: U.() -> Unit
+) = GetOrRegisteringDelegate(this, type, configureIfExists, action)
+
+class GetOrRegisteringDelegate<T, U : Any>(
+    internal val container: T,
+    internal val type: KClass<U>,
+    internal val configureIfExists: Boolean,
+    internal val action: U.() -> Unit
+)
+
+operator fun <U : Task> GetOrRegisteringDelegate<TaskContainer, U>.provideDelegate(
+    receiver: Any?,
+    property: KProperty<*>
+) = ExistingDomainObjectDelegate.of(
+    when (property.name) {
+        in container.names -> when {
+            configureIfExists -> container.named(property.name, type, action)
+            else -> container.named(property.name, type)
+        }
+
+        else -> container.register(property.name, type, action)
+    }
+)

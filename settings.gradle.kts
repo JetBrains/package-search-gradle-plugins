@@ -40,6 +40,7 @@ if (file("../kotlin-aws-lambda-runtime-client/build.gradle.kts").run { exists() 
 
 plugins {
     `gradle-enterprise`
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.7.0"
 }
 
 gradleEnterprise {

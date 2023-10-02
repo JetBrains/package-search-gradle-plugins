@@ -41,7 +41,7 @@ class AwsLambdaNativeRuntimePlugin : Plugin<Project> {
         override fun getName() = name
 
         fun toolchain(action: Action<JavaToolchainSpec>) {
-            javaToolchainSpec.set(action)
+            javaToolchainSpec = action
         }
 
     }
@@ -74,8 +74,8 @@ class AwsLambdaNativeRuntimePlugin : Plugin<Project> {
             .convention(layout.projectDirectory.dir("src/main/resources/META-INF/native-image"))
         val javaToolchainSpec = objects.property<Action<JavaToolchainSpec>>()
             .convention {
-                vendor.set(JvmVendorSpec.GRAAL_VM)
-                languageVersion.set(JavaLanguageVersion.of(Runtime.version().feature()))
+                vendor = JvmVendorSpec.GRAAL_VM
+                languageVersion = JavaLanguageVersion.of(Runtime.version().feature())
             }
 
         val lambdasContainer = container {
@@ -87,7 +87,7 @@ class AwsLambdaNativeRuntimePlugin : Plugin<Project> {
             )
         }
 
-        lambdasContainer.create("main")
+        lambdasContainer.register("main")
 
         val nativeRuntimeExtension = extensions
             .create<Extension>("aws", "aws", emulatorVersion, javaToolchainSpec)
@@ -96,15 +96,14 @@ class AwsLambdaNativeRuntimePlugin : Plugin<Project> {
 
         val downloadLambdaRIE by tasks.registering(DownloadTask::class) {
             group = "aws"
-            url.set(emulatorVersion.map { buildRieUrl(it) })
-            outputFile.set(buildDir.resolve("aws/rie/runtime" + if (OperatingSystem.current().isWindows) ".exe" else ""))
+            onlyIf { OperatingSystem.current().isUnix }
+            url = emulatorVersion.map { buildRieUrl(it) }
+            outputFile = layout.buildDirectory.file("aws/rie/runtime")
             doLast {
-                if (OperatingSystem.current().isUnix) {
-                    Files.setPosixFilePermissions(
-                        outputFile.get().asFile.toPath(),
-                        setOf(OWNER_EXECUTE, OTHERS_EXECUTE, GROUP_EXECUTE)
-                    )
-                }
+                Files.setPosixFilePermissions(
+                    outputFile.get().asFile.toPath(),
+                    setOf(OWNER_EXECUTE, OTHERS_EXECUTE, GROUP_EXECUTE)
+                )
             }
         }
 
@@ -145,7 +144,7 @@ class AwsLambdaNativeRuntimePlugin : Plugin<Project> {
                 }
             }
             val compressTask = if (name != "main") {
-                graalVmExtension.binaries.create(name) {
+                graalVmExtension.binaries.register(name) {
                     classpath(sourcesSets["main"].runtimeClasspath)
                     mainClass.set(entryClass)
                     imageName.set(name)
@@ -219,10 +218,21 @@ fun isOsArm(): Boolean {
 
 fun buildRieUrl(version: String): String {
     val versionString = if (version == "latest") "latest" else "v$version"
-    OperatingSystem.current()
+    val os = OperatingSystem.current()
     val executableName = when {
-        isOsArm() -> "aws-lambda-rie-arm64"
-        else -> "aws-lambda-rie"
+        os.isUnix -> when {
+            isOsArm() -> "aws-lambda-rie-arm64"
+            else -> "aws-lambda-rie"
+        }
+
+        else -> error(
+            """
+            OS not supported by the aws-lambda-runtime-interface-emulator.
+            Supported OSs are:
+            - macOs x64 arm64
+            - Linux x64 arm64
+            """.trimIndent()
+        )
     }
     return "https://github.com/aws/aws-lambda-runtime-interface-emulator/releases/download/$versionString/$executableName"
 }
